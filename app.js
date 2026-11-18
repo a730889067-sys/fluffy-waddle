@@ -73,7 +73,41 @@ function printExams(){
  popup.document.open();popup.document.write(html);popup.document.close();popup.focus();setTimeout(()=>popup.print(),400);
 }
 function renderProgress(){updateStats();const box=$('performance');box.innerHTML='';['math','science','language'].forEach(s=>{const d=data.subjects[s]||{right:0,total:0},pct=d.total?Math.round(d.right/d.total*100):0;const row=document.createElement('div');row.className='performance-row';row.innerHTML='<div><span>'+safe(subjectName(s))+'</span><b>'+pct+'%</b></div><div class="progress"><i style="width:'+pct+'%"></i></div>';box.appendChild(row);});const mistakes=$('mistakes');mistakes.innerHTML='';if(!data.mistakes.length){mistakes.innerHTML='<p class="empty">'+safe(t('emptyMistakes'))+'</p>';}else{data.mistakes.slice(0,8).forEach(q=>{const r=document.createElement('div');r.className='mistake-row';const b=document.createElement('b');b.textContent=q.q;const span=document.createElement('span');span.textContent=t('correctAnswer')+': '+q.opts[q.correct];r.append(b,span);mistakes.appendChild(r);});}}
-function setLanguage(l){lang=['ar','en','es','fr'].includes(l)?l:'ar';document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';const nav=document.querySelectorAll('.nav-btn');[t('home'),t('challenges'),t('cards'),t('teacherTab'),t('progress')].forEach((v,i)=>nav[i].textContent=['⌂ ','⚡ ','▤ ','✎ ','↗ '][i]+v);$('role').textContent='🎓 '+t('student');$('connection').querySelector('span').textContent=navigator.onLine?t('online'):t('offline');}
+function setLanguage(l){
+ lang=['ar','en','es','fr'].includes(l)?l:'ar';
+ document.documentElement.lang=lang;
+ document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+ const set=(selector,key)=>{const el=document.querySelector(selector);if(el)el.textContent=t(key);};
+ const setAll=(selector,key)=>document.querySelectorAll(selector).forEach(el=>el.textContent=t(key));
+ const nav=document.querySelectorAll('.nav-btn');
+ [t('home'),t('challenges'),t('cards'),t('teacherTab'),t('progress')].forEach((v,i)=>nav[i].textContent=['⌂ ','⚡ ','▤ ','✎ ','↗ '][i]+v);
+ $('role').textContent=($('role').dataset.teacher==='1'?'👩‍🏫 ':'🎓 ')+( $('role').dataset.teacher==='1'?t('teacher'):t('student'));
+ $('connection').querySelector('span').textContent=navigator.onLine?t('online'):t('offline');
+ set('.hero .eyebrow','daily');set('.hero h1','title');set('.hero>p','intro');set('#daily','start');set('#home .hero .actions [data-go="cards"]','review');
+ set('#home .stats .stat:nth-child(1) span','xp');set('#home .stats .stat:nth-child(2) span','right');set('#home .stats .stat:nth-child(3) span','streak');
+ set('#home .level .eyebrow','level');set('#home .level>p','levelHint');set('#home .level .between span','nextQ');set('#home .mission b','today');set('#home .mission small','todayHint');
+ const homeHeads=document.querySelectorAll('#home .section-title');
+ if(homeHeads[0]){homeHeads[0].querySelector('.eyebrow').textContent=t('paths');homeHeads[0].querySelector('h2').textContent=t('adventures');homeHeads[0].querySelector('.muted').textContent=t('short');}
+ if(homeHeads[1]){homeHeads[1].querySelector('.eyebrow').textContent=t('continue');homeHeads[1].querySelector('h2').textContent=t('tools');}
+ const subKeys=[['math','mathHint'],['science','scienceHint'],['language','languageHint'],['memory','memoryHint']];
+ document.querySelectorAll('.subject').forEach((el,i)=>{const b=el.querySelector('b'),s=el.querySelector('small');if(subKeys[i]){b.textContent=t(subKeys[i][0]);s.textContent=t(subKeys[i][1]);}});
+ const quickKeys=[['make','makeHint'],['mistakes','mistakesHint'],['backup','backupHint']];
+ document.querySelectorAll('.quick button').forEach((el,i)=>{if(quickKeys[i]){el.querySelector('b').textContent=t(quickKeys[i][0]);el.querySelector('small').textContent=t(quickKeys[i][1]);}});
+ set('#quiz .section-title .eyebrow','challengeRoom');set('#quizTitle','ready');set('#quiz .section-title .button','exit');set('#quizBody h3','choose');set('#quizBody p','each');set('#next','nextQ');
+ set('#cards .section-title .eyebrow','memoryRoom');set('#cards .section-title h2','flashTitle');set('#cards .flash-panel>p','flashHint');set('#flashSide','questionSide');set('#flash small:last-child','flip');set('#prevCard','previous');set('#markAgain','again');set('#markKnown','known');set('#nextCard','next');
+ set('#teacher .section-title .eyebrow','teacherStudio');set('#teacher .section-title h2','build');set('#teacher .section-title .badge','local');set('#teacher .teacher-grid article:first-child h3','add');set('#teacher .teacher-grid article:first-child>p','teacherHint');set('#teacher .teacher-grid article:nth-child(2) h3','bank');set('#teacher .teacher-grid article:nth-child(2)>p','bankHint');
+ const labels={subject:'subject',question:'question',correct:'correct',explanation:'explanation'};
+ Object.keys(labels).forEach(id=>{const el=document.querySelector('label[for="'+id+'"]');if(el)el.textContent=t(labels[id]);});
+ $('question').placeholder=t('question');$('opt0').placeholder=t('option1')||'Option 1';$('opt1').placeholder=t('option2')||'Option 2';$('opt2').placeholder=t('option3')||'Option 3';$('opt3').placeholder=t('option4')||'Option 4';
+ set('#questionForm button[type="submit"]','saveQ');set('#printExams','print');set('#exportQuestions','exportQ');
+ const importLabel=document.querySelector('label[for="importQuestions"]');if(importLabel)importLabel.textContent=t('importQ');
+ const progressHead=document.querySelector('#progress .section-title');if(progressHead){progressHead.querySelector('.eyebrow').textContent=t('journey');progressHead.querySelector('h2').textContent=t('every');}
+ set('#exportProgress','download');set('#progress .progress-grid article:first-child h3','performance');set('#progress .progress-grid article:nth-child(2) h3','reviewList');set('#reviewMistakes','reviewNow');set('#progress .data-panel h3','yourData');set('#progress .data-panel p','dataHint');set('#reset','reset');
+ setAll('#progress .stat span','xp');
+ const pstats=document.querySelectorAll('#progress .stat span');if(pstats[1])pstats[1].textContent=t('right');if(pstats[2])pstats[2].textContent=t('attempts');
+ const footer=document.querySelector('footer span');if(footer)footer.textContent=t('footer');const about=document.querySelector('footer a');if(about)about.textContent=t('about');
+ updateStats();renderBank();renderProgress();renderCards();
+}
 function resetData(){if(!confirm(t('resetConfirm')))return;data=fresh();save();updateStats();renderBank();renderProgress();renderCards();msg(t('resetDone'));}
 document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>go(b.dataset.view)));
 document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
