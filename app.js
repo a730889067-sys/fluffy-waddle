@@ -52,7 +52,26 @@ function download(name,obj){const blob=new Blob([JSON.stringify(obj,null,2)],{ty
 function exportBackup(){download('testcraft-backup.json',{format:'TESTCRAFT',version:2,exportedAt:new Date().toISOString(),data});msg(t('backupDone'));}
 function exportQuestions(){download('testcraft-questions.json',{format:'TESTCRAFT-QUESTIONS',version:2,questions:data.custom});msg(t('backupDone'));}
 async function importQuestions(file){if(!file)return;try{if(file.size>2*1024*1024)throw new Error('large');const raw=JSON.parse(await file.text()),list=Array.isArray(raw)?raw:raw.questions;if(!Array.isArray(list))throw new Error('format');const clean=list.filter(q=>q&&typeof q.q==='string'&&Array.isArray(q.opts)&&q.opts.length===4&&Number.isInteger(q.correct)&&q.correct>=0&&q.correct<4).map((q,i)=>({...q,id:'import-'+Date.now()+'-'+i,topic:['math','science','language'].includes(q.topic)?q.topic:'math'}));data.custom.push(...clean);save();renderBank();msg(t('importDone'));}catch(e){msg(e.message==='large'?'حجم الملف كبير جدًا.':t('importFail'));}finally{$('importQuestions').value='';}}
-function printExams(){if(!data.custom.length){msg(t('printEmpty'));return;}const w=window.open('','_blank');if(!w){msg(t('printBlocked'));return;}function page(label){const qs=shuffle(data.custom).map(q=>{const order=shuffle([0,1,2,3]);return {...q,opts:order.map(i=>q.opts[i]),key:order.indexOf(q.correct)};});return '<section class="page"><h1>TESTCRAFT — '+safe(label)+'</h1><p>'+safe(t('nameLine'))+'</p>'+qs.map((q,i)=>'<article><p><b>'+(i+1)+'. '+safe(q.q)+'</b></p>'+q.opts.map(o=>'<p class="option">◯ '+safe(o)+'</p>').join('')+'</article></section><section class="page"><h1>'+safe(t('key'))+' — '+safe(label)+'</h1>'+qs.map((q,i)=>'<p>'+(i+1)+'. '+safe(q.opts[q.key])+'</p>').join('')+'</section>';}const html='<!doctype html><html lang="'+lang+'" dir="'+(lang==='ar'?'rtl':'ltr')+'"><meta charset="utf-8"><title>TESTCRAFT</title><style>body{font-family:Arial,sans-serif;color:#111;padding:25px;line-height:1.55}.page{page-break-after:always;min-height:95vh}.page:last-child{page-break-after:auto}h1{border-bottom:2px solid #111;padding-bottom:10px}.option{margin:5px 20px}article{page-break-inside:avoid;margin:18px 0}@media print{body{padding:0}}</style><body>'+page(t('modelA'))+page(t('modelB'))+'</body></html>';w.document.open();w.document.write(html);w.document.close();w.focus();setTimeout(()=>w.print(),400);}
+function printExams(){
+ if(!data.custom.length){msg(t('printEmpty'));return;}
+ const popup=window.open('','_blank');
+ if(!popup){msg(t('printBlocked'));return;}
+ function makePage(label){
+  const qs=shuffle(data.custom).map(q=>{const order=shuffle([0,1,2,3]);return {...q,opts:order.map(i=>q.opts[i]),key:order.indexOf(q.correct)};});
+  let examRows='';
+  qs.forEach((q,i)=>{
+   examRows+='<article><p><b>'+(i+1)+'. '+safe(q.q)+'</b></p>';
+   q.opts.forEach(option=>{examRows+='<p class="option">◯ '+safe(option)+'</p>';});
+   examRows+='</article>';
+  });
+  let answerRows='';
+  qs.forEach((q,i)=>{answerRows+='<p>'+(i+1)+'. '+safe(q.opts[q.key])+'</p>';});
+  return '<section class="page"><h1>TESTCRAFT — '+safe(label)+'</h1><p>'+safe(t('nameLine'))+'</p>'+examRows+'</section><section class="page"><h1>'+safe(t('key'))+' — '+safe(label)+'</h1>'+answerRows+'</section>';
+ }
+ const css='body{font-family:Arial,sans-serif;color:#111;padding:25px;line-height:1.55}.page{page-break-after:always;min-height:95vh}.page:last-child{page-break-after:auto}h1{border-bottom:2px solid #111;padding-bottom:10px}.option{margin:5px 20px}article{page-break-inside:avoid;margin:18px 0}@media print{body{padding:0}}';
+ const html='<!doctype html><html lang="'+lang+'" dir="'+(lang==='ar'?'rtl':'ltr')+'"><meta charset="utf-8"><title>TESTCRAFT</title><style>'+css+'</style><body>'+makePage(t('modelA'))+makePage(t('modelB'))+'</body></html>';
+ popup.document.open();popup.document.write(html);popup.document.close();popup.focus();setTimeout(()=>popup.print(),400);
+}
 function renderProgress(){updateStats();const box=$('performance');box.innerHTML='';['math','science','language'].forEach(s=>{const d=data.subjects[s]||{right:0,total:0},pct=d.total?Math.round(d.right/d.total*100):0;const row=document.createElement('div');row.className='performance-row';row.innerHTML='<div><span>'+safe(subjectName(s))+'</span><b>'+pct+'%</b></div><div class="progress"><i style="width:'+pct+'%"></i></div>';box.appendChild(row);});const mistakes=$('mistakes');mistakes.innerHTML='';if(!data.mistakes.length){mistakes.innerHTML='<p class="empty">'+safe(t('emptyMistakes'))+'</p>';}else{data.mistakes.slice(0,8).forEach(q=>{const r=document.createElement('div');r.className='mistake-row';const b=document.createElement('b');b.textContent=q.q;const span=document.createElement('span');span.textContent=t('correctAnswer')+': '+q.opts[q.correct];r.append(b,span);mistakes.appendChild(r);});}}
 function setLanguage(l){lang=['ar','en','es','fr'].includes(l)?l:'ar';document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';const nav=document.querySelectorAll('.nav-btn');[t('home'),t('challenges'),t('cards'),t('teacherTab'),t('progress')].forEach((v,i)=>nav[i].textContent=['⌂ ','⚡ ','▤ ','✎ ','↗ '][i]+v);$('role').textContent='🎓 '+t('student');$('connection').querySelector('span').textContent=navigator.onLine?t('online'):t('offline');}
 function resetData(){if(!confirm(t('resetConfirm')))return;data=fresh();save();updateStats();renderBank();renderProgress();renderCards();msg(t('resetDone'));}
