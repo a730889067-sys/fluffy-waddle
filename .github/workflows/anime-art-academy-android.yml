@@ -1,28 +1,51 @@
 name: Anime Art Academy - Build APK
+
 on:
   workflow_dispatch:
   push:
     paths:
       - "anime-art-academy/**"
       - ".github/workflows/anime-art-academy-android.yml"
+
+permissions:
+  contents: read
+
 jobs:
   build:
+    name: Build debug APK
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: anime-art-academy
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
-      - uses: gradle/actions/setup-gradle@v4
-      - uses: android-actions/setup-android@v3
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle caching
+        uses: gradle/actions/setup-gradle@v4
+
       - name: Build debug APK
-        run: gradle assembleDebug
-      - uses: actions/upload-artifact@v4
+        run: gradle --no-daemon assembleDebug
+
+      - name: Verify APK exists
+        run: |
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          ls -lh app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload installable APK
+        uses: actions/upload-artifact@v4
         with:
           name: Anime-Art-Academy-APK
           path: anime-art-academy/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
           retention-days: 14
