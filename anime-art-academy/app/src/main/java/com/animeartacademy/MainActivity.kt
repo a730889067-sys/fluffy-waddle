@@ -83,6 +83,34 @@ private val lessons = listOf(
             "اجعل الظلال العميقة في مناطق التقاء الأشكال فقط.",
             "امزج الدرجات تدريجيًا واترك مناطق بيضاء للّمعان."),
         "ثبّت اتجاه الضوء في كامل الوجه والشعر والملابس حتى لا يبدو الرسم متناقضًا."),
+    Lesson("body", "نِسَب الجسم وتوزيعه", "الأساسيات", "مبتدئ", "14 دقيقة", "body", Color(0xFF81B7C9),
+        listOf("ابدأ بخط رأسي خفيف يحدد طول الجسم واتجاهه.",
+            "قسّم الجسم إلى الرأس والصدر والحوض مع مراعاة النسب.",
+            "حدد الكتفين والخصر والحوض بأشكال هندسية بسيطة.",
+            "أضف الذراعين والساقين مع تحديد المفاصل.",
+            "حوّل الأشكال إلى خطوط جسم أنمي نظيفة ومتوازنة."),
+        "لا تبدأ برسم الملابس؛ اضبط هيكل الجسم أولًا."),
+    Lesson("pose", "رسم وضعية وحركة", "الأساسيات", "متوسط", "12 دقيقة", "pose", Color(0xFFB58AE6),
+        listOf("ارسم خط الحركة الرئيسي من الرأس إلى القدمين.",
+            "ضع دوائر صغيرة لمفاصل الكتفين والمرفقين والركبتين.",
+            "حدد اتجاه الصدر والحوض بخطين متعاكسين عند الحاجة.",
+            "اربط المفاصل بأشكال مبسطة للذراعين والساقين.",
+            "نظّف الشكل وأضف توازنًا واضحًا للوزن والحركة."),
+        "الوضعية المقروءة أهم من التفاصيل؛ اجعل خط الحركة واضحًا."),
+    Lesson("hands", "تبسيط رسم اليدين", "الأساسيات", "متوسط", "12 دقيقة", "hands", Color(0xFFD48B9B),
+        listOf("ارسم شكلًا مبسطًا لراحة اليد دون تفاصيل.",
+            "حدد اتجاه الرسغ ومحور راحة اليد.",
+            "أضف الإبهام ككتلة منفصلة عن بقية الأصابع.",
+            "قسّم الأصابع إلى مفاصل وأطوال مختلفة.",
+            "أكمل الخطوط والأظافر والظلال الخفيفة."),
+        "الأصابع ليست متساوية الطول؛ راقب أطوالها واتجاهاتها."),
+    Lesson("clothes", "طيّات الملابس والزي", "الأساسيات", "متوسط", "10 دقائق", "clothes", Color(0xFFB6A16B),
+        listOf("ابدأ بشكل الجسم العام تحت الملابس.",
+            "حدد مناطق الشد عند الكتف والمرفق والخصر.",
+            "ارسم خطوط الطيات باتجاه نقاط الشد.",
+            "اجعل الطيات متقاربة في مناطق الضغط ومتباعدة في القماش الواسع.",
+            "أضف الظلال أسفل الطيات لإظهار حجم القماش."),
+        "لا ترسم طيات عشوائية؛ كل طية لها نقطة شد أو سقوط."));
     Lesson("jinwoo", "دراسة ملامح سون جين وو", "تطبيق الشخصيات", "متوسط", "15 دقيقة", "jinwoo", Color(0xFF7598F4),
         listOf("ابدأ بدائرة الرأس وخط منتصف الوجه لتثبيت النسب.",
             "شكّل فكًا واضحًا وذقنًا أنحف مع ميل بسيط للرأس.",
@@ -268,6 +296,10 @@ private fun GuideIllustration(lesson: Lesson, step: Int, modifier: Modifier = Mo
             "eye" -> drawEyeStudy(step, dark, lesson.accent, guide, w, h)
             "hair" -> drawHairStudy(step, dark, lesson.accent, guide, w, h)
             "shade" -> drawShadeStudy(step, dark, lesson.accent, guide, w, h)
+            "body" -> drawBodyStudy(step, dark, lesson.accent, guide, w, h)
+            "pose" -> drawPoseStudy(step, dark, lesson.accent, guide, w, h)
+            "hands" -> drawHandsStudy(step, dark, lesson.accent, guide, w, h)
+            "clothes" -> drawClothesStudy(step, dark, lesson.accent, guide, w, h)
             else -> drawFaceStudy(step, lesson.kind, dark, lesson.accent, guide, w, h)
         }
     }
@@ -434,6 +466,129 @@ private fun DrawScope.drawShadeStudy(progress: Int, dark: Color, accent: Color, 
     }
 }
 
+private fun DrawScope.drawBodyStudy(progress: Int, dark: Color, accent: Color, guide: Color, w: Float, h: Float) {
+    val cx = w * 0.5f
+    val headY = h * 0.18f
+    drawLine(guide, Offset(cx, h * 0.08f), Offset(cx, h * 0.94f), 2f)
+    if (progress >= 0) drawCircle(guide, w * 0.055f, Offset(cx, headY), style = Stroke(2f))
+    if (progress >= 1) {
+        drawLine(accent, Offset(cx, h * 0.27f), Offset(cx, h * 0.55f), 5f)
+        drawLine(accent, Offset(cx - w * 0.15f, h * 0.34f), Offset(cx + w * 0.15f, h * 0.34f), 5f)
+        drawLine(accent, Offset(cx - w * 0.12f, h * 0.57f), Offset(cx + w * 0.12f, h * 0.57f), 5f)
+    }
+    if (progress >= 2) {
+        drawOval(guide, Offset(cx - w * 0.13f, h * 0.27f), androidx.compose.ui.geometry.Size(w * 0.26f, h * 0.31f), style = Stroke(3f))
+        drawOval(guide, Offset(cx - w * 0.15f, h * 0.51f), androidx.compose.ui.geometry.Size(w * 0.30f, h * 0.14f), style = Stroke(3f))
+    }
+    if (progress >= 3) {
+        drawLine(dark, Offset(cx - w * 0.13f, h * 0.34f), Offset(cx - w * 0.31f, h * 0.58f), 5f)
+        drawLine(dark, Offset(cx + w * 0.13f, h * 0.34f), Offset(cx + w * 0.31f, h * 0.58f), 5f)
+        drawLine(dark, Offset(cx - w * 0.09f, h * 0.62f), Offset(cx - w * 0.13f, h * 0.91f), 6f)
+        drawLine(dark, Offset(cx + w * 0.09f, h * 0.62f), Offset(cx + w * 0.13f, h * 0.91f), 6f)
+    }
+    if (progress >= 4) {
+        drawCircle(accent, 4f, Offset(cx - w * 0.13f, h * 0.58f))
+        drawCircle(accent, 4f, Offset(cx + w * 0.13f, h * 0.58f))
+        drawLine(dark, Offset(cx - w * 0.19f, h * 0.91f), Offset(cx - w * 0.07f, h * 0.91f), 5f)
+        drawLine(dark, Offset(cx + w * 0.07f, h * 0.91f), Offset(cx + w * 0.19f, h * 0.91f), 5f)
+    }
+}
+
+private fun DrawScope.drawPoseStudy(progress: Int, dark: Color, accent: Color, guide: Color, w: Float, h: Float) {
+    val a = Offset(w * 0.40f, h * 0.12f)
+    val b = Offset(w * 0.57f, h * 0.39f)
+    val c = Offset(w * 0.45f, h * 0.69f)
+    val d = Offset(w * 0.67f, h * 0.91f)
+    if (progress >= 0) {
+        val action = Path().apply { moveTo(a.x, a.y); quadraticTo(w * 0.68f, h * 0.47f, d.x, d.y) }
+        drawPath(action, accent, style = Stroke(4f))
+    }
+    if (progress >= 1) listOf(a, b, c, d, Offset(w * 0.28f, h * 0.53f)).forEach {
+        drawCircle(guide, w * 0.025f, it, style = Stroke(2f))
+    }
+    if (progress >= 2) {
+        drawLine(dark, Offset(w * 0.30f, h * 0.32f), Offset(w * 0.65f, h * 0.39f), 7f)
+        drawLine(dark, Offset(w * 0.36f, h * 0.65f), Offset(w * 0.60f, h * 0.70f), 7f)
+    }
+    if (progress >= 3) {
+        drawLine(dark, Offset(w * 0.34f, h * 0.34f), Offset(w * 0.17f, h * 0.60f), 6f)
+        drawLine(dark, Offset(w * 0.62f, h * 0.38f), Offset(w * 0.83f, h * 0.25f), 6f)
+        drawLine(dark, Offset(w * 0.43f, h * 0.72f), Offset(w * 0.31f, h * 0.93f), 7f)
+        drawLine(dark, Offset(w * 0.59f, h * 0.72f), Offset(w * 0.75f, h * 0.91f), 7f)
+    }
+    if (progress >= 4) {
+        drawCircle(accent, w * 0.035f, a)
+        drawCircle(accent, w * 0.035f, b)
+        drawCircle(accent, w * 0.035f, c)
+        drawCircle(accent, w * 0.035f, d)
+    }
+}
+
+private fun DrawScope.drawHandsStudy(progress: Int, dark: Color, accent: Color, guide: Color, w: Float, h: Float) {
+    val palm = Path().apply {
+        moveTo(w * 0.39f, h * 0.78f)
+        quadraticTo(w * 0.28f, h * 0.60f, w * 0.36f, h * 0.43f)
+        quadraticTo(w * 0.50f, h * 0.32f, w * 0.64f, h * 0.43f)
+        lineTo(w * 0.68f, h * 0.73f)
+        quadraticTo(w * 0.55f, h * 0.91f, w * 0.39f, h * 0.78f)
+    }
+    if (progress >= 0) drawPath(palm, guide, style = Stroke(3f))
+    if (progress >= 1) drawLine(accent, Offset(w * 0.50f, h * 0.77f), Offset(w * 0.50f, h * 0.46f), 3f)
+    if (progress >= 2) {
+        val thumb = Path().apply {
+            moveTo(w * 0.37f, h * 0.55f)
+            quadraticTo(w * 0.19f, h * 0.50f, w * 0.22f, h * 0.38f)
+        }
+        drawPath(thumb, dark, style = Stroke(7f))
+    }
+    if (progress >= 3) {
+        val starts = listOf(0.39f, 0.46f, 0.54f, 0.62f)
+        val ends = listOf(0.20f, 0.13f, 0.16f, 0.28f)
+        starts.indices.forEach { i ->
+            drawLine(dark, Offset(w * starts[i], h * 0.45f), Offset(w * (starts[i] - 0.01f), h * ends[i]), 7f)
+        }
+    }
+    if (progress >= 4) {
+        drawLine(accent, Offset(w * 0.36f, h * 0.68f), Offset(w * 0.64f, h * 0.68f), 2f)
+        drawCircle(dark, 3f, Offset(w * 0.39f, h * 0.23f))
+        drawCircle(dark, 3f, Offset(w * 0.46f, h * 0.15f))
+        drawCircle(dark, 3f, Offset(w * 0.54f, h * 0.18f))
+        drawCircle(dark, 3f, Offset(w * 0.62f, h * 0.30f))
+    }
+}
+
+private fun DrawScope.drawClothesStudy(progress: Int, dark: Color, accent: Color, guide: Color, w: Float, h: Float) {
+    val body = Path().apply {
+        moveTo(w * 0.35f, h * 0.25f)
+        lineTo(w * 0.22f, h * 0.40f)
+        lineTo(w * 0.30f, h * 0.88f)
+        lineTo(w * 0.70f, h * 0.88f)
+        lineTo(w * 0.78f, h * 0.40f)
+        lineTo(w * 0.65f, h * 0.25f)
+        close()
+    }
+    if (progress >= 0) drawPath(body, guide, style = Stroke(3f))
+    if (progress >= 1) {
+        drawCircle(accent, 5f, Offset(w * 0.35f, h * 0.29f))
+        drawCircle(accent, 5f, Offset(w * 0.65f, h * 0.29f))
+        drawCircle(accent, 5f, Offset(w * 0.50f, h * 0.80f))
+    }
+    if (progress >= 2) {
+        drawLine(dark, Offset(w * 0.35f, h * 0.29f), Offset(w * 0.43f, h * 0.52f), 3f)
+        drawLine(dark, Offset(w * 0.65f, h * 0.29f), Offset(w * 0.57f, h * 0.52f), 3f)
+        drawLine(dark, Offset(w * 0.50f, h * 0.80f), Offset(w * 0.42f, h * 0.56f), 3f)
+    }
+    if (progress >= 3) {
+        drawLine(accent, Offset(w * 0.28f, h * 0.49f), Offset(w * 0.39f, h * 0.67f), 3f)
+        drawLine(accent, Offset(w * 0.72f, h * 0.49f), Offset(w * 0.61f, h * 0.67f), 3f)
+        drawLine(accent, Offset(w * 0.43f, h * 0.57f), Offset(w * 0.50f, h * 0.72f), 3f)
+    }
+    if (progress >= 4) {
+        drawLine(dark.copy(alpha = 0.45f), Offset(w * 0.31f, h * 0.76f), Offset(w * 0.39f, h * 0.84f), 5f)
+        drawLine(dark.copy(alpha = 0.45f), Offset(w * 0.69f, h * 0.76f), Offset(w * 0.61f, h * 0.84f), 5f)
+    }
+}
+
 @Composable
 private fun DrawingPad(modifier: Modifier = Modifier) {
     val strokes = remember { mutableStateListOf<InkStroke>() }
@@ -464,7 +619,7 @@ private fun DrawingPad(modifier: Modifier = Modifier) {
             }
         }
         Canvas(
-            Modifier.fillMaxWidth().height(300.dp).shadow(3.dp, RoundedCornerShape(17.dp))
+            Modifier.fillMaxWidth().aspectRatio(1f).shadow(3.dp, RoundedCornerShape(17.dp))
                 .clip(RoundedCornerShape(17.dp)).background(Paper)
                 .pointerInput(selectedColor, brushWidth) {
                     val canvasWidth = size.width.coerceAtLeast(1).toFloat()
@@ -521,7 +676,7 @@ private fun DrawingPad(modifier: Modifier = Modifier) {
 
 private fun writeDrawing(context: Context, uri: Uri, strokes: List<InkStroke>): Boolean {
     return try {
-        val bitmap = Bitmap.createBitmap(1200, 1600, Bitmap.Config.ARGB_8888)
+        val bitmap = Bitmap.createBitmap(1200, 1200, Bitmap.Config.ARGB_8888)
         val canvas = android.graphics.Canvas(bitmap)
         canvas.drawColor(android.graphics.Color.rgb(250, 248, 242))
         strokes.forEach { stroke ->
@@ -545,9 +700,9 @@ private fun writeDrawing(context: Context, uri: Uri, strokes: List<InkStroke>): 
             bitmap.recycle()
             false
         } else {
-            stream.use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            val saved = stream.use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
             bitmap.recycle()
-            true
+            saved
         }
     } catch (_: Exception) {
         false
