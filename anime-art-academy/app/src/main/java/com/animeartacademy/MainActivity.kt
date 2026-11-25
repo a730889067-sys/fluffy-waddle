@@ -152,21 +152,86 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun AcademyApp() {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val preferences = remember {
+        context.getSharedPreferences("anime_art_academy_progress", Context.MODE_PRIVATE)
+    }
     var selectedLesson by remember { mutableStateOf<Lesson?>(null) }
     var step by remember { mutableIntStateOf(0) }
+    var completedIds by remember {
+        mutableStateOf(
+            preferences.getStringSet("completed_lesson_ids", mutableSetOf<String>())?.toSet()
+                ?: emptySet()
+        )
+    }
+    var lastLessonId by remember { mutableStateOf(preferences.getString("last_lesson_id", null)) }
+    var lastStep by remember { mutableIntStateOf(preferences.getInt("last_step", 0)) }
+
+    fun storeLastPosition(lesson: Lesson, position: Int) {
+        val safePosition = position.coerceIn(0, lesson.steps.lastIndex)
+        lastLessonId = lesson.id
+        lastStep = safePosition
+        preferences.edit()
+            .putString("last_lesson_id", lesson.id)
+            .putInt("last_step", safePosition)
+            .apply()
+    }
+
+    fun openLesson(lesson: Lesson, resume: Boolean = false) {
+        selectedLesson = lesson
+        val startAt = if (resume && lastLessonId == lesson.id) lastStep else 0
+        step = startAt.coerceIn(0, lesson.steps.lastIndex)
+        storeLastPosition(lesson, step)
+    }
+
+    fun completeLesson(lesson: Lesson) {
+        val updated = completedIds + lesson.id
+        completedIds = updated
+        preferences.edit()
+            .putStringSet("completed_lesson_ids", updated.toMutableSet())
+            .apply()
+        Toast.makeText(context, "أحسنت! تم إكمال الدرس وحفظ تقدمك.", Toast.LENGTH_SHORT).show()
+    }
+
     MaterialTheme(colorScheme = darkColorScheme(
         background = Background, surface = SurfaceDark, primary = Accent, secondary = AccentMint
     )) {
         Surface(Modifier.fillMaxSize(), color = Background) {
             val current = selectedLesson
-            if (current == null) HomeScreen { selectedLesson = it; step = 0 }
-            else LessonScreen(current, step, { selectedLesson = null }, { step = it })
+            if (current == null) {
+                val resumeLesson = lessons.firstOrNull { it.id == lastLessonId }
+                HomeScreen(
+                    onSelect = { openLesson(it) },
+                    completedIds = completedIds,
+                    lastLesson = resumeLesson,
+                    lastStep = lastStep,
+                    onResume = { resumeLesson?.let { openLesson(it, resume = true) } }
+                )
+            } else {
+                LessonScreen(
+                    lesson = current,
+                    step = step,
+                    onBack = { selectedLesson = null },
+                    onStepChange = {
+                        step = it.coerceIn(0, current.steps.lastIndex)
+                        storeLastPosition(current, step)
+                    },
+                    isCompleted = current.id in completedIds,
+                    onComplete = { completeLesson(current) }
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun HomeScreen(onSelect: (Lesson) -> Unit) {
+private fun HomeScreen(
+    onSelect: (Lesson) -> Unit,
+    completedIds: Set<String>,
+    lastLesson: Lesson?,
+    lastStep: Int,
+    onResume: () -> Unit
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(horizontal = 18.dp),
         verticalArrangement = Arrangement.spacedBy(13.dp)
@@ -182,6 +247,47 @@ private fun HomeScreen(onSelect: (Lesson) -> Unit) {
                         Box(Modifier.size(7.dp).background(AccentMint, CircleShape))
                         Text("الدروس والرسومات تعمل دون إنترنت", color = AccentMint, fontSize = 12.sp)
                     }
+                    Spacer(Modifier.height(5.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("تقدمك المحفوظ", color = Color(0xFFC5C9D6), fontSize = 12.sp)
+                        Spacer(Modifier.weight(1f))
+                        Text("${completedIds.size} من ${lessons.size} دروس", color = AccentMint, fontSize = 12.sp)
+                    }
+                    LinearProgressIndicator(
+                        progress = completedIds.size.toFloat() / lessons.size.toFloat(),
+                        modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
+                        color = AccentMint,
+                        trackColor = SurfaceRaised
+                    )
+                }
+            }
+        }
+        if (lastLesson != null) {
+            item {
+                ElevatedCard(
+                    onClick = onResume,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.elevatedCardColors(containerColor = SurfaceRaised)
+                ) {
+                    Row(
+                        Modifier.fillMaxWidth().padding(15.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            Modifier.size(42.dp).clip(CircleShape).background(Accent.copy(alpha = 0.16f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("▶", color = Accent, fontSize = 17.sp)
+                        }
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Text("تابع من حيث توقفت", color = Accent, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text(lastLesson.title, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                            Text("الخطوة ${lastStep + 1} من ${lastLesson.steps.size}", color = Color(0xFF9EA5B6), fontSize = 11.sp)
+                        }
+                        Text("‹", color = Color(0xFFB6BBD0), fontSize = 24.sp)
+                    }
                 }
             }
         }
@@ -189,7 +295,9 @@ private fun HomeScreen(onSelect: (Lesson) -> Unit) {
             Text("مسار التعلّم", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Bold)
             Text("ابدأ بالأساسيات ثم انتقل إلى الشخصيات", color = Color(0xFF9EA5B6), fontSize = 13.sp)
         }
-        items(lessons) { lesson -> LessonCard(lesson) { onSelect(lesson) } }
+        items(lessons) { lesson ->
+            LessonCard(lesson, isCompleted = lesson.id in completedIds) { onSelect(lesson) }
+        }
         item {
             Card(colors = CardDefaults.cardColors(containerColor = SurfaceDark), shape = RoundedCornerShape(18.dp)) {
                 Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -204,7 +312,7 @@ private fun HomeScreen(onSelect: (Lesson) -> Unit) {
 }
 
 @Composable
-private fun LessonCard(lesson: Lesson, onClick: () -> Unit) {
+private fun LessonCard(lesson: Lesson, isCompleted: Boolean, onClick: () -> Unit) {
     ElevatedCard(
         onClick = onClick, modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(19.dp),
@@ -226,13 +334,20 @@ private fun LessonCard(lesson: Lesson, onClick: () -> Unit) {
                 Text("${lesson.level}  •  ${lesson.steps.size} خطوات  •  ${lesson.duration}",
                     color = Color(0xFF9EA5B6), fontSize = 11.sp)
             }
-            Text("‹", color = Color(0xFFB6BBD0), fontSize = 26.sp)
+            Text(if (isCompleted) "✓" else "‹", color = if (isCompleted) AccentMint else Color(0xFFB6BBD0), fontSize = 22.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
 
 @Composable
-private fun LessonScreen(lesson: Lesson, step: Int, onBack: () -> Unit, onStepChange: (Int) -> Unit) {
+private fun LessonScreen(
+    lesson: Lesson,
+    step: Int,
+    onBack: () -> Unit,
+    onStepChange: (Int) -> Unit,
+    isCompleted: Boolean,
+    onComplete: () -> Unit
+) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(13.dp)) {
         TextButton(onClick = onBack) { Text("← العودة إلى الدروس", color = Accent, fontSize = 14.sp) }
@@ -264,13 +379,28 @@ private fun LessonScreen(lesson: Lesson, step: Int, onBack: () -> Unit, onStepCh
                 Text("نصيحة: ${lesson.tip}", color = Color(0xFFB8BECC), fontSize = 12.sp, lineHeight = 19.sp)
             }
         }
+        if (isCompleted) {
+            Text("✓  أكملت هذا الدرس، وتم حفظ تقدمك على الهاتف.", color = AccentMint, fontSize = 12.sp)
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(9.dp), modifier = Modifier.fillMaxWidth()) {
             OutlinedButton(onClick = { onStepChange((step - 1).coerceAtLeast(0)) },
                 enabled = step > 0, modifier = Modifier.weight(1f)) { Text("السابق") }
-            Button(onClick = { onStepChange((step + 1).coerceAtMost(lesson.steps.lastIndex)) },
-                enabled = step < lesson.steps.lastIndex, modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = Color.White)) {
-                Text("الخطوة التالية")
+            Button(
+                onClick = {
+                    if (step < lesson.steps.lastIndex) onStepChange(step + 1)
+                    else if (!isCompleted) onComplete()
+                },
+                enabled = step < lesson.steps.lastIndex || !isCompleted,
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = Color.White)
+            ) {
+                Text(
+                    when {
+                        step < lesson.steps.lastIndex -> "الخطوة التالية"
+                        isCompleted -> "تم إكمال الدرس"
+                        else -> "إكمال الدرس"
+                    }
+                )
             }
         }
         Text("مساحة التدريب الخاصة بك", color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
