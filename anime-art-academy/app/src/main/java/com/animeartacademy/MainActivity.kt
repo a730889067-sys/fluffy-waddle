@@ -215,8 +215,9 @@ private fun LessonCard(lesson: Lesson, onClick: () -> Unit) {
             Box(Modifier.size(48.dp).clip(RoundedCornerShape(15.dp)).background(lesson.accent.copy(alpha = 0.16f)),
                 contentAlignment = Alignment.Center) {
                 Text(when (lesson.kind) {
-                    "eye" -> "◉"; "hair" -> "✦"; "shade" -> "◐"; "jinwoo" -> "影"
-                    "gojo" -> "◇"; "luffy" -> "☀"; "tanjiro" -> "✧"; else -> "◌"
+                    "eye" -> "◉"; "hair" -> "✦"; "shade" -> "◐"; "body" -> "♙"
+                    "pose" -> "↗"; "hands" -> "✋"; "clothes" -> "◇"
+                    "jinwoo" -> "影"; "gojo" -> "◇"; "luffy" -> "☀"; "tanjiro" -> "✧"; else -> "◌"
                 }, color = lesson.accent, fontSize = 23.sp, fontWeight = FontWeight.Bold)
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -592,6 +593,7 @@ private fun DrawScope.drawClothesStudy(progress: Int, dark: Color, accent: Color
 @Composable
 private fun DrawingPad(modifier: Modifier = Modifier) {
     val strokes = remember { mutableStateListOf<InkStroke>() }
+    val redoStrokes = remember { mutableStateListOf<InkStroke>() }
     var currentPoints by remember { mutableStateOf<List<Offset>>(emptyList()) }
     var selectedColor by remember { mutableStateOf(Color(0xFF242631)) }
     var brushWidth by remember { mutableStateOf(0.006f) }
@@ -607,14 +609,14 @@ private fun DrawingPad(modifier: Modifier = Modifier) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(9.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf(Color(0xFF242631), Color(0xFF9B3848), Color(0xFF315FAD), Color(0xFF24815E), Color(0xFFD39A37)).forEach { color ->
+            listOf(Color(0xFF242631), Color(0xFF9B3848), Color(0xFF315FAD), Color(0xFF24815E), Color(0xFFD39A37), Paper).forEach { color ->
                 Box(Modifier.size(29.dp).clip(CircleShape).background(color)
                     .then(if (selectedColor == color) Modifier.border(2.dp, Color.White, CircleShape) else Modifier)
                     .clickable { selectedColor = color })
             }
             Spacer(Modifier.weight(1f))
             Text("حجم القلم", color = Color(0xFFB9BECC), fontSize = 11.sp)
-            TextButton(onClick = { brushWidth = if (brushWidth < 0.008f) 0.012f else if (brushWidth < 0.015f) 0.004f else 0.008f }) {
+            TextButton(onClick = { brushWidth = if (brushWidth < 0.008f) 0.012f else if (brushWidth < 0.015f) 0.020f else 0.004f }) {
                 Text(if (brushWidth < 0.008f) "رفيع" else if (brushWidth < 0.015f) "متوسط" else "عريض", color = Accent, fontSize = 11.sp)
             }
         }
@@ -633,7 +635,10 @@ private fun DrawingPad(modifier: Modifier = Modifier) {
                             )
                         },
                         onDragEnd = {
-                            if (currentPoints.isNotEmpty()) strokes.add(InkStroke(currentPoints, selectedColor, brushWidth))
+                            if (currentPoints.isNotEmpty()) {
+                                strokes.add(InkStroke(currentPoints, selectedColor, brushWidth))
+                                redoStrokes.clear()
+                            }
                             currentPoints = emptyList()
                         },
                         onDragCancel = { currentPoints = emptyList() }
@@ -651,22 +656,31 @@ private fun DrawingPad(modifier: Modifier = Modifier) {
                         stroke.points.drop(1).forEach { lineTo(it.x * size.width, it.y * size.height) }
                         if (stroke.points.size == 1) lineTo(first.x * size.width + 0.5f, first.y * size.height + 0.5f)
                     }
-                    drawPath(path, stroke.color, style = Stroke(
-                        width = stroke.widthFraction * size.width,
-                        cap = androidx.compose.ui.graphics.StrokeCap.Round,
-                        join = androidx.compose.ui.graphics.StrokeJoin.Round
-                    ))
+                    if (stroke.points.size == 1) {
+                        drawCircle(stroke.color, stroke.widthFraction * size.width / 2f,
+                            Offset(first.x * size.width, first.y * size.height))
+                    } else {
+                        drawPath(path, stroke.color, style = Stroke(
+                            width = stroke.widthFraction * size.width,
+                            cap = androidx.compose.ui.graphics.StrokeCap.Round,
+                            join = androidx.compose.ui.graphics.StrokeJoin.Round
+                        ))
+                    }
                 }
             }
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-            OutlinedButton(onClick = { if (strokes.isNotEmpty()) strokes.removeAt(strokes.lastIndex) },
-                Modifier.weight(1f), enabled = strokes.isNotEmpty()) { Text("تراجع") }
-            OutlinedButton(onClick = { strokes.clear(); currentPoints = emptyList() }, Modifier.weight(1f)) { Text("مسح") }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            OutlinedButton(onClick = { if (strokes.isNotEmpty()) redoStrokes.add(strokes.removeAt(strokes.lastIndex)) },
+                Modifier.weight(0.85f), enabled = strokes.isNotEmpty()) { Text("تراجع") }
+            OutlinedButton(onClick = { if (redoStrokes.isNotEmpty()) strokes.add(redoStrokes.removeAt(redoStrokes.lastIndex)) },
+                Modifier.weight(0.85f), enabled = redoStrokes.isNotEmpty()) { Text("إعادة") }
+            OutlinedButton(onClick = { strokes.clear(); redoStrokes.clear(); currentPoints = emptyList() },
+                Modifier.weight(0.8f)) { Text("مسح") }
             Button(onClick = {
                 pendingSave = strokes.toList()
                 saveLauncher.launch("anime-art-${System.currentTimeMillis()}.png")
-            }, Modifier.weight(1.2f), colors = ButtonDefaults.buttonColors(containerColor = Accent)) {
+            }, Modifier.weight(1.2f), enabled = strokes.isNotEmpty(),
+                colors = ButtonDefaults.buttonColors(containerColor = Accent)) {
                 Text("حفظ PNG")
             }
         }
@@ -692,7 +706,11 @@ private fun writeDrawing(context: Context, uri: Uri, strokes: List<InkStroke>): 
                     strokeJoin = AndroidPaint.Join.ROUND
                     strokeWidth = (stroke.widthFraction * bitmap.width).coerceAtLeast(2f)
                 }
-                canvas.drawPath(path, paint)
+                if (stroke.points.size == 1) {
+                    canvas.drawCircle(first.x * bitmap.width, first.y * bitmap.height, paint.strokeWidth / 2f, paint.apply { style = AndroidPaint.Style.FILL })
+                } else {
+                    canvas.drawPath(path, paint)
+                }
             }
         }
         val stream = context.contentResolver.openOutputStream(uri)
