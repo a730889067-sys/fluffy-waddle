@@ -379,7 +379,9 @@ private fun LessonCard(lesson: Lesson, isCompleted: Boolean, onClick: () -> Unit
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             val portrait = characterPortrait(lesson)
-            if (portrait != 0) {
+            if (lesson.kind == "luffy5") {
+                GuideIllustration(lesson, lesson.steps.lastIndex, Modifier.size(58.dp).clip(RoundedCornerShape(13.dp)))
+            } else if (portrait != 0) {
                 Image(
                     painter = painterResource(portrait),
                     contentDescription = "مرجع مرسوم للشخصية",
@@ -609,7 +611,9 @@ private fun LessonScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    if (portrait != 0) {
+                    if (lesson.kind == "luffy5") {
+                        GuideIllustration(lesson, step, Modifier.size(58.dp).clip(RoundedCornerShape(11.dp)).clickable { showReferenceImage = true })
+                    } else if (portrait != 0) {
                         Image(
                             painter = painterResource(portrait),
                             contentDescription = "الصورة المرجعية للشخصية، اضغط للتكبير",
@@ -742,12 +746,16 @@ private fun LessonScreen(
                             Text("إغلاق", color = Accent)
                         }
                     }
-                    Image(
-                        painter = painterResource(portrait),
-                        contentDescription = "مرجع مكبر للرسم",
-                        modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(15.dp)),
-                        contentScale = ContentScale.Fit
-                    )
+                    if (lesson.kind == "luffy5") {
+                        GuideIllustration(lesson, lesson.steps.lastIndex, Modifier.fillMaxWidth().aspectRatio(0.80f).clip(RoundedCornerShape(15.dp)))
+                    } else {
+                        Image(
+                            painter = painterResource(portrait),
+                            contentDescription = "مرجع مكبر للرسم",
+                            modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(15.dp)),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
                     Text(
                         "قارن شكل الرأس والشعر والملابس بهذه الصورة، ثم ارجع إلى لوحة الرسم.",
                         color = Muted,
