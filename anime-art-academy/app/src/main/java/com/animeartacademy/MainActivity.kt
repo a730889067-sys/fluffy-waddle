@@ -40,11 +40,14 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 
 private val Background = Color(0xFFF4F5FA)
 private val SurfaceDark = Color(0xFFFFFFFF)
@@ -538,9 +541,12 @@ private fun LessonScreen(
     isCompleted: Boolean,
     onComplete: () -> Unit
 ) {
+    var showReferenceImage by remember(lesson.id) { mutableStateOf(false) }
+    val portrait = characterPortrait(lesson)
+
     Column(
         Modifier.fillMaxSize().background(Background).padding(horizontal = 11.dp, vertical = 6.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+        verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
         Row(
             Modifier.fillMaxWidth().heightIn(min = 42.dp),
@@ -564,34 +570,83 @@ private fun LessonScreen(
             trackColor = SurfaceRaised
         )
 
+        // Keep the exact instruction visible above the drawing area; the learner never needs
+        // to scroll away from the step they are copying.
         Card(
             Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(17.dp),
+            shape = RoundedCornerShape(15.dp),
             colors = CardDefaults.cardColors(containerColor = SurfaceDark),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
-            Column(Modifier.fillMaxWidth().padding(10.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                    val portrait = characterPortrait(lesson)
+            Column(
+                Modifier.fillMaxWidth().padding(horizontal = 9.dp, vertical = 7.dp),
+                verticalArrangement = Arrangement.spacedBy(3.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     if (portrait != 0) {
                         Image(
                             painter = painterResource(portrait),
-                            contentDescription = "صورة مرجعية مرسومة للشخصية",
-                            modifier = Modifier.size(82.dp).clip(RoundedCornerShape(12.dp)).border(1.dp, SurfaceRaised, RoundedCornerShape(12.dp)),
+                            contentDescription = "الصورة المرجعية للشخصية، اضغط للتكبير",
+                            modifier = Modifier
+                                .size(58.dp)
+                                .clip(RoundedCornerShape(11.dp))
+                                .border(1.dp, SurfaceRaised, RoundedCornerShape(11.dp))
+                                .clickable { showReferenceImage = true },
                             contentScale = ContentScale.Crop
                         )
                     }
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                        Text(if (portrait != 0) "مرجع الشخصية" else "الخطوة الحالية", color = lesson.accent, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        Text(lesson.steps[step], color = Ink, fontSize = 13.sp, lineHeight = 19.sp, fontWeight = FontWeight.SemiBold)
-                        if (portrait != 0) {
-                            Text("استخدم الصورة لملاحظة شكل الشعر والوجه والملابس.", color = Muted, fontSize = 10.sp, lineHeight = 14.sp)
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                if (portrait != 0) "المرجع والخطوة الحالية" else "الخطوة الحالية",
+                                color = lesson.accent,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            if (portrait != 0) {
+                                TextButton(
+                                    onClick = { showReferenceImage = true },
+                                    contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp)
+                                ) {
+                                    Text("تكبير الصورة", color = Accent, fontSize = 10.sp)
+                                }
+                            }
                         }
+                        Text(
+                            lesson.steps[step],
+                            color = Ink,
+                            fontSize = 12.sp,
+                            lineHeight = 17.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
                 }
-                Text("شرح التنفيذ: ${stepExplanation(lesson, step)}", color = Ink, fontSize = 11.sp, lineHeight = 16.sp)
-                Text("مكان الرسم: ${stepLocation(lesson, step)}", color = Accent, fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold)
-                Text("انتبه: ${lesson.tip}", color = Muted, fontSize = 10.sp, lineHeight = 14.sp)
+                Text(
+                    "شرح تفصيلي: ${stepExplanation(lesson, step)}",
+                    color = Ink,
+                    fontSize = 10.5.sp,
+                    lineHeight = 14.sp
+                )
+                Text(
+                    "مكان الخط: ${stepLocation(lesson, step)}",
+                    color = Accent,
+                    fontSize = 10.sp,
+                    lineHeight = 13.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    "ملاحظة: ${lesson.tip}",
+                    color = Muted,
+                    fontSize = 9.5.sp,
+                    lineHeight = 12.sp
+                )
             }
         }
 
@@ -600,8 +655,8 @@ private fun LessonScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("ارسم فوق المخطط الباهت مباشرة", color = Ink, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            Text("اللوحة والشرح في مكان واحد", color = Muted, fontSize = 10.sp)
+            Text("ارسم فوق المخطط الباهت مباشرة", color = Ink, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text("الشرح والرسم أمامك دائمًا", color = Muted, fontSize = 9.sp)
         }
 
         DrawingPad(lesson, step, Modifier.fillMaxWidth().weight(1f))
@@ -638,6 +693,46 @@ private fun LessonScreen(
         }
         if (isCompleted) {
             Text("✓ تم حفظ إكمال هذا الدرس على هاتفك.", color = AccentMint, fontSize = 10.sp)
+        }
+    }
+
+    if (showReferenceImage && portrait != 0) {
+        Dialog(onDismissRequest = { showReferenceImage = false }) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(22.dp),
+                color = Color.White,
+                shadowElevation = 12.dp
+            ) {
+                Column(
+                    Modifier.fillMaxWidth().padding(14.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(9.dp)
+                ) {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("الصورة المرجعية للشخصية", color = Ink, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        TextButton(onClick = { showReferenceImage = false }) {
+                            Text("إغلاق", color = Accent)
+                        }
+                    }
+                    Image(
+                        painter = painterResource(portrait),
+                        contentDescription = "مرجع مكبر للرسم",
+                        modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(15.dp)),
+                        contentScale = ContentScale.Fit
+                    )
+                    Text(
+                        "قارن شكل الرأس والشعر والملابس بهذه الصورة، ثم ارجع إلى لوحة الرسم.",
+                        color = Muted,
+                        fontSize = 11.sp,
+                        lineHeight = 16.sp
+                    )
+                }
+            }
         }
     }
 }
@@ -1037,13 +1132,40 @@ private fun DrawingPad(lesson: Lesson, step: Int, modifier: Modifier = Modifier)
     var selectedColor by remember(lesson.id) { mutableStateOf(Color(0xFF242631)) }
     var brushWidth by remember(lesson.id) { mutableStateOf(0.006f) }
     var pendingSave by remember(lesson.id) { mutableStateOf<List<InkStroke>>(emptyList()) }
+    var pendingCanvasSize by remember(lesson.id) { mutableStateOf(IntSize.Zero) }
     var zoomMode by remember(lesson.id) { mutableStateOf(false) }
     var zoomScale by remember(lesson.id) { mutableFloatStateOf(1f) }
     var zoomPan by remember(lesson.id) { mutableStateOf(Offset.Zero) }
+    var viewportSize by remember(lesson.id) { mutableStateOf(IntSize.Zero) }
+    fun updateZoom(targetScale: Float) {
+        val nextScale = targetScale.coerceIn(1f, 3.5f)
+        zoomScale = nextScale
+        if (nextScale <= 1f) {
+            zoomPan = Offset.Zero
+        } else {
+            val maxX = viewportSize.width * (nextScale - 1f) / 2f
+            val maxY = viewportSize.height * (nextScale - 1f) / 2f
+            zoomPan = Offset(
+                zoomPan.x.coerceIn(-maxX, maxX),
+                zoomPan.y.coerceIn(-maxY, maxY)
+            )
+        }
+    }
+
     val zoomState = rememberTransformableState { zoomChange, panChange, _ ->
         val newScale = (zoomScale * zoomChange).coerceIn(1f, 3.5f)
         zoomScale = newScale
-        zoomPan = if (newScale <= 1f) Offset.Zero else zoomPan + panChange
+        if (newScale <= 1f) {
+            zoomPan = Offset.Zero
+        } else {
+            val maxX = viewportSize.width * (newScale - 1f) / 2f
+            val maxY = viewportSize.height * (newScale - 1f) / 2f
+            val requested = zoomPan + panChange
+            zoomPan = Offset(
+                requested.x.coerceIn(-maxX, maxX),
+                requested.y.coerceIn(-maxY, maxY)
+            )
+        }
     }
 
     fun persistDrawing() {
@@ -1054,7 +1176,7 @@ private fun DrawingPad(lesson: Lesson, step: Int, modifier: Modifier = Modifier)
 
     val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/png")) { uri: Uri? ->
         if (uri != null) {
-            val ok = writeDrawing(context, uri, pendingSave)
+            val ok = writeDrawing(context, uri, pendingSave, pendingCanvasSize)
             Toast.makeText(context, if (ok) "تم حفظ الرسم بنجاح" else "تعذر حفظ الصورة", Toast.LENGTH_SHORT).show()
         }
     }
@@ -1076,22 +1198,31 @@ private fun DrawingPad(lesson: Lesson, step: Int, modifier: Modifier = Modifier)
         Row(
             Modifier.fillMaxWidth().heightIn(min = 30.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp)
+            horizontalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             TextButton(
                 onClick = { zoomMode = false },
-                contentPadding = PaddingValues(horizontal = 7.dp, vertical = 0.dp)
+                contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp)
             ) { Text(if (!zoomMode) "✓ رسم" else "رسم", color = if (!zoomMode) AccentMint else Accent, fontSize = 10.sp) }
             TextButton(
                 onClick = { zoomMode = true },
-                contentPadding = PaddingValues(horizontal = 7.dp, vertical = 0.dp)
-            ) { Text(if (zoomMode) "✓ تكبير بإصبعين" else "تكبير بإصبعين", color = if (zoomMode) AccentMint else Accent, fontSize = 10.sp) }
+                contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp)
+            ) { Text(if (zoomMode) "✓ تكبير" else "تكبير", color = if (zoomMode) AccentMint else Accent, fontSize = 10.sp) }
+            TextButton(
+                onClick = { zoomMode = true; updateZoom(zoomScale / 1.25f) },
+                contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp)
+            ) { Text("−", color = Accent, fontSize = 16.sp) }
+            TextButton(
+                onClick = { zoomMode = true; updateZoom(zoomScale * 1.25f) },
+                contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp)
+            ) { Text("+", color = Accent, fontSize = 16.sp) }
             Spacer(Modifier.weight(1f))
             TextButton(
-                onClick = { zoomScale = 1f; zoomPan = Offset.Zero },
-                contentPadding = PaddingValues(horizontal = 7.dp, vertical = 0.dp)
-            ) { Text("إعادة ضبط 1×", color = Muted, fontSize = 10.sp) }
+                onClick = { updateZoom(1f) },
+                contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp)
+            ) { Text("إعادة 1×", color = Muted, fontSize = 10.sp) }
         }
+
         Row(
             Modifier.fillMaxWidth().heightIn(min = 28.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -1115,6 +1246,7 @@ private fun DrawingPad(lesson: Lesson, step: Int, modifier: Modifier = Modifier)
         Box(
             Modifier.fillMaxWidth().weight(1f).clip(RoundedCornerShape(15.dp))
                 .background(Paper).border(1.dp, Color(0xFFE0E2EA), RoundedCornerShape(15.dp))
+                .onSizeChanged { viewportSize = it }
                 .transformable(state = zoomState, enabled = zoomMode)
         ) {
             Box(
@@ -1230,6 +1362,7 @@ private fun DrawingPad(lesson: Lesson, step: Int, modifier: Modifier = Modifier)
             Button(
                 onClick = {
                     pendingSave = strokes.toList()
+                    pendingCanvasSize = viewportSize
                     saveLauncher.launch("anime-art-${lesson.id}-${System.currentTimeMillis()}.png")
                 },
                 Modifier.weight(1.2f).heightIn(min = 34.dp),
@@ -1241,11 +1374,18 @@ private fun DrawingPad(lesson: Lesson, step: Int, modifier: Modifier = Modifier)
     }
 }
 
-private fun writeDrawing(context: Context, uri: Uri, strokes: List<InkStroke>): Boolean {
+private fun writeDrawing(context: Context, uri: Uri, strokes: List<InkStroke>, canvasSize: IntSize): Boolean {
     return try {
-        val bitmap = Bitmap.createBitmap(1200, 1200, Bitmap.Config.ARGB_8888)
+        val outputWidth = 1200
+        val ratio = if (canvasSize.width > 0 && canvasSize.height > 0) {
+            canvasSize.height.toFloat() / canvasSize.width.toFloat()
+        } else {
+            1f
+        }
+        val outputHeight = (outputWidth * ratio).toInt().coerceIn(600, 2400)
+        val bitmap = Bitmap.createBitmap(outputWidth, outputHeight, Bitmap.Config.ARGB_8888)
         val canvas = android.graphics.Canvas(bitmap)
-        canvas.drawColor(android.graphics.Color.rgb(250, 248, 242))
+        canvas.drawColor(Paper.toArgb())
         strokes.forEach { stroke ->
             if (stroke.points.isNotEmpty()) {
                 val path = AndroidPath()
