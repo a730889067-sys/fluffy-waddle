@@ -23,10 +23,8 @@ import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -329,7 +327,7 @@ private fun HomeScreen(
                         }
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                             Text("تابع من حيث توقفت", color = Accent, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            Text(lastLesson.title, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                            Text(lastLesson.title, color = Ink, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                             Text("الخطوة ${lastStep + 1} من ${lastLesson.steps.size}", color = Muted, fontSize = 11.sp)
                         }
                         Text("‹", color = Muted, fontSize = 24.sp)
