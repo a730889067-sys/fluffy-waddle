@@ -18,6 +18,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -38,6 +40,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.input.pointer.pointerInput
@@ -335,7 +338,7 @@ private fun HomeScreen(
             }
         }
         item {
-            Text("مسار التعلّم", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Bold)
+            Text("مسار التعلّم", color = Ink, fontSize = 21.sp, fontWeight = FontWeight.Bold)
             Text("ابدأ بالأساسيات ثم انتقل إلى الشخصيات", color = Muted, fontSize = 13.sp)
         }
         items(lessons) { lesson ->
@@ -357,25 +360,45 @@ private fun HomeScreen(
 @Composable
 private fun LessonCard(lesson: Lesson, isCompleted: Boolean, onClick: () -> Unit) {
     ElevatedCard(
-        onClick = onClick, modifier = Modifier.fillMaxWidth(),
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(19.dp),
         colors = CardDefaults.elevatedCardColors(containerColor = SurfaceDark)
     ) {
-        Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(13.dp)) {
-            Box(Modifier.size(48.dp).clip(RoundedCornerShape(15.dp)).background(lesson.accent.copy(alpha = 0.16f)),
-                contentAlignment = Alignment.Center) {
-                Text(when (lesson.kind) {
-                    "eye" -> "◉"; "hair" -> "✦"; "shade" -> "◐"; "body" -> "♙"
-                    "pose" -> "↗"; "hands" -> "✋"; "clothes" -> "◇"
-                    "jinwoo" -> "影"; "gojo" -> "◇"; "luffy" -> "☀"; "tanjiro" -> "✧"; else -> "◌"
-                }, color = lesson.accent, fontSize = 23.sp, fontWeight = FontWeight.Bold)
+        Row(
+            Modifier.fillMaxWidth().padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            val portrait = characterPortrait(lesson)
+            if (portrait != 0) {
+                Image(
+                    painter = painterResource(portrait),
+                    contentDescription = "مرجع مرسوم للشخصية",
+                    modifier = Modifier.size(58.dp).clip(RoundedCornerShape(13.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Box(
+                    Modifier.size(48.dp).clip(RoundedCornerShape(15.dp)).background(lesson.accent.copy(alpha = 0.16f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        when (lesson.kind) {
+                            "eye" -> "◉"; "hair" -> "✦"; "shade" -> "◐"; "body" -> "♙"
+                            "pose" -> "↗"; "hands" -> "✋"; "clothes" -> "◇"
+                            else -> "◌"
+                        },
+                        color = lesson.accent,
+                        fontSize = 23.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(lesson.series, color = lesson.accent, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                Text(lesson.title, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                Text("${lesson.level}  •  ${lesson.steps.size} خطوات  •  ${lesson.duration}",
-                    color = Muted, fontSize = 11.sp)
+                Text(lesson.title, color = Ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text("${lesson.level}  •  ${lesson.steps.size} خطوات  •  ${lesson.duration}", color = Muted, fontSize = 11.sp)
             }
             Text(if (isCompleted) "✓" else "‹", color = if (isCompleted) AccentMint else Muted, fontSize = 22.sp, fontWeight = FontWeight.Bold)
         }
@@ -1016,6 +1039,14 @@ private fun DrawingPad(lesson: Lesson, step: Int, modifier: Modifier = Modifier)
     var selectedColor by remember(lesson.id) { mutableStateOf(Color(0xFF242631)) }
     var brushWidth by remember(lesson.id) { mutableStateOf(0.006f) }
     var pendingSave by remember(lesson.id) { mutableStateOf<List<InkStroke>>(emptyList()) }
+    var zoomMode by remember(lesson.id) { mutableStateOf(false) }
+    var zoomScale by remember(lesson.id) { mutableFloatStateOf(1f) }
+    var zoomPan by remember(lesson.id) { mutableStateOf(Offset.Zero) }
+    val zoomState = rememberTransformableState { zoomChange, panChange, _ ->
+        val newScale = (zoomScale * zoomChange).coerceIn(1f, 3.5f)
+        zoomScale = newScale
+        zoomPan = if (newScale <= 1f) Offset.Zero else zoomPan + panChange
+    }
 
     fun persistDrawing() {
         drawingPreferences.edit()
@@ -1045,6 +1076,25 @@ private fun DrawingPad(lesson: Lesson, step: Int, modifier: Modifier = Modifier)
             }
         }
         Row(
+            Modifier.fillMaxWidth().heightIn(min = 30.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            TextButton(
+                onClick = { zoomMode = false },
+                contentPadding = PaddingValues(horizontal = 7.dp, vertical = 0.dp)
+            ) { Text(if (!zoomMode) "✓ رسم" else "رسم", color = if (!zoomMode) AccentMint else Accent, fontSize = 10.sp) }
+            TextButton(
+                onClick = { zoomMode = true },
+                contentPadding = PaddingValues(horizontal = 7.dp, vertical = 0.dp)
+            ) { Text(if (zoomMode) "✓ تكبير بإصبعين" else "تكبير بإصبعين", color = if (zoomMode) AccentMint else Accent, fontSize = 10.sp) }
+            Spacer(Modifier.weight(1f))
+            TextButton(
+                onClick = { zoomScale = 1f; zoomPan = Offset.Zero },
+                contentPadding = PaddingValues(horizontal = 7.dp, vertical = 0.dp)
+            ) { Text("إعادة ضبط 1×", color = Muted, fontSize = 10.sp) }
+        }
+        Row(
             Modifier.fillMaxWidth().heightIn(min = 28.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -1067,35 +1117,46 @@ private fun DrawingPad(lesson: Lesson, step: Int, modifier: Modifier = Modifier)
         Box(
             Modifier.fillMaxWidth().weight(1f).clip(RoundedCornerShape(15.dp))
                 .background(Paper).border(1.dp, Color(0xFFE0E2EA), RoundedCornerShape(15.dp))
+                .transformable(state = zoomState, enabled = zoomMode)
         ) {
-            GuideIllustration(lesson, step, Modifier.fillMaxSize().alpha(0.30f))
-            Canvas(
-                Modifier.fillMaxSize().pointerInput(selectedColor, brushWidth, lesson.id) {
-                    val canvasWidth = size.width.coerceAtLeast(1).toFloat()
-                    val canvasHeight = size.height.coerceAtLeast(1).toFloat()
-                    detectDragGestures(
-                        onDragStart = { p ->
-                            currentPoints = listOf(Offset(p.x / canvasWidth, p.y / canvasHeight))
-                        },
-                        onDrag = { change, _ ->
-                            currentPoints = currentPoints + Offset(
-                                (change.position.x / canvasWidth).coerceIn(0f, 1f),
-                                (change.position.y / canvasHeight).coerceIn(0f, 1f)
-                            )
-                        },
-                        onDragEnd = {
-                            if (currentPoints.isNotEmpty()) {
-                                strokes.add(InkStroke(currentPoints, selectedColor, brushWidth))
-                                if (strokes.size > 350) strokes.removeAt(0)
-                                redoStrokes.clear()
-                                persistDrawing()
-                            }
-                            currentPoints = emptyList()
-                        },
-                        onDragCancel = { currentPoints = emptyList() }
-                    )
+            Box(
+                Modifier.fillMaxSize().graphicsLayer {
+                    scaleX = zoomScale
+                    scaleY = zoomScale
+                    translationX = zoomPan.x
+                    translationY = zoomPan.y
                 }
             ) {
+                GuideIllustration(lesson, step, Modifier.fillMaxSize().alpha(0.30f))
+                Canvas(
+                    Modifier.fillMaxSize().pointerInput(selectedColor, brushWidth, lesson.id, zoomMode) {
+                        if (!zoomMode) {
+                            val canvasWidth = size.width.coerceAtLeast(1).toFloat()
+                            val canvasHeight = size.height.coerceAtLeast(1).toFloat()
+                            detectDragGestures(
+                                onDragStart = { p ->
+                                    currentPoints = listOf(Offset(p.x / canvasWidth, p.y / canvasHeight))
+                                },
+                                onDrag = { change, _ ->
+                                    currentPoints = currentPoints + Offset(
+                                        (change.position.x / canvasWidth).coerceIn(0f, 1f),
+                                        (change.position.y / canvasHeight).coerceIn(0f, 1f)
+                                    )
+                                },
+                                onDragEnd = {
+                                    if (currentPoints.isNotEmpty()) {
+                                        strokes.add(InkStroke(currentPoints, selectedColor, brushWidth))
+                                        if (strokes.size > 350) strokes.removeAt(0)
+                                        redoStrokes.clear()
+                                        persistDrawing()
+                                    }
+                                    currentPoints = emptyList()
+                                },
+                                onDragCancel = { currentPoints = emptyList() }
+                            )
+                        }
+                    }
+                ) {
                 val allStrokes = strokes.toList() + if (currentPoints.isNotEmpty())
                     listOf(InkStroke(currentPoints, selectedColor, brushWidth)) else emptyList()
                 allStrokes.forEach { stroke ->
@@ -1118,6 +1179,16 @@ private fun DrawingPad(lesson: Lesson, step: Int, modifier: Modifier = Modifier)
                         }
                     }
                 }
+            }
+            if (zoomMode) {
+                Text(
+                    "حرّك إصبعين للتنقل، وباعد بينهما للتكبير",
+                    Modifier.align(Alignment.TopCenter).padding(top = 6.dp)
+                        .clip(RoundedCornerShape(9.dp)).background(Color.White.copy(alpha = 0.88f))
+                        .padding(horizontal = 9.dp, vertical = 4.dp),
+                    color = Ink,
+                    fontSize = 9.sp
+                )
             }
         }
 
