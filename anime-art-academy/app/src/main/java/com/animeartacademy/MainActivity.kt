@@ -143,6 +143,31 @@ private val lessons = listOf(
 
 private data class InkStroke(val points: List<Offset>, val color: Color, val widthFraction: Float)
 
+private fun encodeDrawingStrokes(strokes: List<InkStroke>): String {
+    return strokes.takeLast(350).joinToString("|") { stroke ->
+        val points = stroke.points.joinToString(";") { "${it.x},${it.y}" }
+        "${stroke.color.toArgb()}~${stroke.widthFraction}~$points"
+    }
+}
+
+private fun decodeDrawingStrokes(encoded: String?): List<InkStroke> {
+    if (encoded.isNullOrBlank()) return emptyList()
+    return encoded.split("|").mapNotNull { record ->
+        val parts = record.split("~", limit = 3)
+        if (parts.size != 3) return@mapNotNull null
+        val colorValue = parts[0].toIntOrNull() ?: return@mapNotNull null
+        val widthValue = parts[1].toFloatOrNull()?.coerceIn(0.002f, 0.05f) ?: return@mapNotNull null
+        val points = parts[2].split(";").mapNotNull { pair ->
+            val coordinates = pair.split(",", limit = 2)
+            if (coordinates.size != 2) return@mapNotNull null
+            val x = coordinates[0].toFloatOrNull() ?: return@mapNotNull null
+            val y = coordinates[1].toFloatOrNull() ?: return@mapNotNull null
+            Offset(x.coerceIn(0f, 1f), y.coerceIn(0f, 1f))
+        }
+        if (points.isEmpty()) null else InkStroke(points, Color(colorValue), widthValue)
+    }
+}
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -406,7 +431,7 @@ private fun LessonScreen(
         Text("مساحة التدريب الخاصة بك", color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
         Text("ارسم بإصبعك، تراجع عن آخر خط، ثم احفظ عملك كصورة PNG.",
             color = Color(0xFF9EA5B6), fontSize = 12.sp)
-        DrawingPad(Modifier.fillMaxWidth())
+        DrawingPad(lesson.id, Modifier.fillMaxWidth())
         Spacer(Modifier.height(20.dp))
     }
 }
@@ -791,14 +816,26 @@ private fun DrawScope.drawClothesStudy(progress: Int, dark: Color, accent: Color
 }
 
 @Composable
-private fun DrawingPad(modifier: Modifier = Modifier) {
-    val strokes = remember { mutableStateListOf<InkStroke>() }
-    val redoStrokes = remember { mutableStateListOf<InkStroke>() }
-    var currentPoints by remember { mutableStateOf<List<Offset>>(emptyList()) }
-    var selectedColor by remember { mutableStateOf(Color(0xFF242631)) }
-    var brushWidth by remember { mutableStateOf(0.006f) }
-    var pendingSave by remember { mutableStateOf<List<InkStroke>>(emptyList()) }
+private fun DrawingPad(lessonId: String, modifier: Modifier = Modifier) {
     val context = androidx.compose.ui.platform.LocalContext.current
+    val drawingPreferences = remember(lessonId) {
+        context.getSharedPreferences("anime_art_academy_drawings", Context.MODE_PRIVATE)
+    }
+    val strokes = remember(lessonId) {
+        mutableStateListOf<InkStroke>().apply {
+            addAll(decodeDrawingStrokes(drawingPreferences.getString("drawing_$lessonId", null)))
+        }
+    }
+    val redoStrokes = remember(lessonId) { mutableStateListOf<InkStroke>() }
+    var currentPoints by remember(lessonId) { mutableStateOf<List<Offset>>(emptyList()) }
+    var selectedColor by remember(lessonId) { mutableStateOf(Color(0xFF242631)) }
+    var brushWidth by remember(lessonId) { mutableStateOf(0.006f) }
+    var pendingSave by remember(lessonId) { mutableStateOf<List<InkStroke>>(emptyList()) }
+    fun persistDrawing() {
+        drawingPreferences.edit()
+            .putString("drawing_$lessonId", encodeDrawingStrokes(strokes.toList()))
+            .apply()
+    }
     val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/png")) { uri: Uri? ->
         if (uri != null) {
             val ok = writeDrawing(context, uri, pendingSave)
@@ -848,7 +885,9 @@ private fun DrawingPad(modifier: Modifier = Modifier) {
                         onDragEnd = {
                             if (currentPoints.isNotEmpty()) {
                                 strokes.add(InkStroke(currentPoints, selectedColor, brushWidth))
+                                if (strokes.size > 350) strokes.removeAt(0)
                                 redoStrokes.clear()
+                                persistDrawing()
                             }
                             currentPoints = emptyList()
                         },
@@ -881,12 +920,24 @@ private fun DrawingPad(modifier: Modifier = Modifier) {
             }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-            OutlinedButton(onClick = { if (strokes.isNotEmpty()) redoStrokes.add(strokes.removeAt(strokes.lastIndex)) },
-                Modifier.weight(0.85f), enabled = strokes.isNotEmpty()) { Text("تراجع") }
-            OutlinedButton(onClick = { if (redoStrokes.isNotEmpty()) strokes.add(redoStrokes.removeAt(redoStrokes.lastIndex)) },
-                Modifier.weight(0.85f), enabled = redoStrokes.isNotEmpty()) { Text("إعادة") }
-            OutlinedButton(onClick = { strokes.clear(); redoStrokes.clear(); currentPoints = emptyList() },
-                Modifier.weight(0.8f)) { Text("مسح") }
+            OutlinedButton(onClick = {
+                if (strokes.isNotEmpty()) {
+                    redoStrokes.add(strokes.removeAt(strokes.lastIndex))
+                    persistDrawing()
+                }
+            }, Modifier.weight(0.85f), enabled = strokes.isNotEmpty()) { Text("تراجع") }
+            OutlinedButton(onClick = {
+                if (redoStrokes.isNotEmpty()) {
+                    strokes.add(redoStrokes.removeAt(redoStrokes.lastIndex))
+                    persistDrawing()
+                }
+            }, Modifier.weight(0.85f), enabled = redoStrokes.isNotEmpty()) { Text("إعادة") }
+            OutlinedButton(onClick = {
+                strokes.clear()
+                redoStrokes.clear()
+                currentPoints = emptyList()
+                persistDrawing()
+            }, Modifier.weight(0.8f)) { Text("مسح") }
             Button(onClick = {
                 pendingSave = strokes.toList()
                 saveLauncher.launch("anime-art-${System.currentTimeMillis()}.png")
@@ -895,7 +946,7 @@ private fun DrawingPad(modifier: Modifier = Modifier) {
                 Text("حفظ PNG")
             }
         }
-        Text("تُحفظ الصورة في المكان الذي تختاره من نافذة الحفظ في هاتفك.", color = Color(0xFF9EA5B6), fontSize = 11.sp)
+        Text("يُحفظ هذا التدريب تلقائيًا على هاتفك. ويمكنك أيضًا تصديره كصورة PNG.", color = Color(0xFF9EA5B6), fontSize = 11.sp)
     }
 }
 
