@@ -10,10 +10,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: anime-art-academy-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   build:
     name: Build debug APK
