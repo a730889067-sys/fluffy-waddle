@@ -470,12 +470,25 @@ private fun DrawScope.drawEyeStudy(progress: Int, dark: Color, accent: Color, gu
 }
 
 private fun DrawScope.drawFaceStudy(progress: Int, kind: String, dark: Color, accent: Color, guide: Color, w: Float, h: Float) {
-    val cx = w * 0.5f; val cy = h * 0.49f; val r = w * 0.205f
+    val cx = w * 0.5f
+    val cy = h * 0.49f
+    val r = w * 0.205f
+    val hairColor = when (kind) {
+        "gojo" -> Color(0xFFB9C4D6)
+        "luffy" -> Color(0xFF3A302B)
+        "tanjiro" -> Color(0xFF392A2A)
+        else -> Color(0xFF242735)
+    }
+
+    // Stage 1: head construction.
     drawCircle(guide, r, Offset(cx, cy - h * 0.045f), style = Stroke(2f))
     if (progress >= 1) {
         drawLine(guide, Offset(cx, h * 0.11f), Offset(cx, h * 0.88f), 2f)
         drawLine(guide, Offset(cx - r * 1.2f, cy + h * 0.04f), Offset(cx + r * 1.2f, cy + h * 0.04f), 2f)
+        drawLine(guide.copy(alpha = 0.55f), Offset(cx - r * 0.85f, cy + h * 0.20f), Offset(cx + r * 0.85f, cy + h * 0.20f), 1.5f)
     }
+
+    // Stage 2: jaw, cheeks and ears.
     if (progress >= 2) {
         val face = Path().apply {
             moveTo(cx - r * 0.92f, cy - h * 0.06f)
@@ -483,65 +496,122 @@ private fun DrawScope.drawFaceStudy(progress: Int, kind: String, dark: Color, ac
             cubicTo(cx + r * 0.47f, cy + h * 0.43f, cx + r * 1.02f, cy + h * 0.34f, cx + r * 0.92f, cy - h * 0.06f)
         }
         drawPath(face, dark, style = Stroke(3f))
+        drawOval(dark.copy(alpha = 0.70f), Offset(cx - r * 1.02f, cy + h * 0.03f), androidx.compose.ui.geometry.Size(r * 0.22f, h * 0.16f), style = Stroke(2f))
+        drawOval(dark.copy(alpha = 0.70f), Offset(cx + r * 0.80f, cy + h * 0.03f), androidx.compose.ui.geometry.Size(r * 0.22f, h * 0.16f), style = Stroke(2f))
     }
+
+    // Stage 3: individual facial expression and landmarks.
     if (progress >= 3) {
         val eyeY = cy + h * 0.05f
+        val eyeWidth = if (kind == "luffy") r * 0.24f else r * 0.27f
         for (side in listOf(-1f, 1f)) {
             val ex = cx + side * r * 0.43f
             val eye = Path().apply {
-                moveTo(ex - r * 0.25f, eyeY)
-                quadraticTo(ex, eyeY - h * 0.055f, ex + r * 0.25f, eyeY)
-                quadraticTo(ex, eyeY + h * 0.045f, ex - r * 0.25f, eyeY)
+                moveTo(ex - eyeWidth, eyeY)
+                quadraticTo(ex, eyeY - h * if (kind == "jinwoo" || kind == "gojo") 0.025f else 0.055f, ex + eyeWidth, eyeY)
+                quadraticTo(ex, eyeY + h * 0.045f, ex - eyeWidth, eyeY)
             }
             drawPath(eye, dark, style = Stroke(2.7f))
             drawCircle(dark, r * 0.075f, Offset(ex, eyeY))
+            val browY = eyeY - h * 0.075f
+            drawLine(dark, Offset(ex - eyeWidth, browY), Offset(ex + eyeWidth, browY - h * 0.012f), 2.4f)
         }
         drawLine(guide, Offset(cx, eyeY + h * 0.02f), Offset(cx - r * 0.04f, eyeY + h * 0.14f), 2f)
         val mouth = Path().apply {
-            moveTo(cx - r * 0.17f, cy + h * 0.30f)
-            quadraticTo(cx, cy + h * 0.34f, cx + r * 0.17f, cy + h * 0.30f)
+            moveTo(cx - r * if (kind == "luffy") 0.22f else 0.17f, cy + h * 0.30f)
+            quadraticTo(cx, cy + h * if (kind == "luffy") 0.40f else 0.34f, cx + r * if (kind == "luffy") 0.22f else 0.17f, cy + h * 0.30f)
         }
-        drawPath(mouth, dark, style = Stroke(2.5f))
+        drawPath(mouth, dark, style = Stroke(if (kind == "luffy") 3.5f else 2.5f))
+        if (kind == "luffy") {
+            drawLine(Color(0xFF9E4D42), Offset(cx - r * 0.46f, cy + h * 0.01f), Offset(cx - r * 0.38f, cy + h * 0.13f), 2.5f)
+        }
     }
+
+    // Stage 4: character-specific hair, signature details and shoulders.
     if (progress >= 4) {
-        val hair = Path().apply {
-            moveTo(cx - r * 1.02f, cy - h * 0.02f)
-            quadraticTo(cx - r * 1.22f, cy - h * 0.34f, cx - r * 0.62f, cy - h * 0.37f)
-            quadraticTo(cx - r * 0.32f, cy - h * 0.55f, cx, cy - h * 0.35f)
-            quadraticTo(cx + r * 0.42f, cy - h * 0.54f, cx + r * 0.82f, cy - h * 0.28f)
-            quadraticTo(cx + r * 1.18f, cy - h * 0.18f, cx + r * 1.02f, cy + h * 0.02f)
-        }
-        val hairColor = if (kind == "gojo") Color(0xFF7E8492) else if (kind == "luffy") Color(0xFF3A302B) else accent
-        drawPath(hair, hairColor, style = Stroke(5f))
         when (kind) {
-            "jinwoo" -> for (i in -2..2) {
-                val x = cx + i * r * 0.32f
-                val spike = Path().apply {
-                    moveTo(x - r * 0.12f, cy - h * 0.27f)
-                    lineTo(x + r * 0.02f, cy - h * 0.43f - (if (i % 2 == 0) h * 0.03f else 0f))
-                    lineTo(x + r * 0.18f, cy - h * 0.24f)
+            "jinwoo" -> {
+                val cap = Path().apply {
+                    moveTo(cx - r * 1.02f, cy - h * 0.02f)
+                    quadraticTo(cx - r * 1.20f, cy - h * 0.36f, cx - r * 0.48f, cy - h * 0.36f)
+                    quadraticTo(cx - r * 0.15f, cy - h * 0.58f, cx + r * 0.05f, cy - h * 0.35f)
+                    quadraticTo(cx + r * 0.55f, cy - h * 0.55f, cx + r * 0.98f, cy - h * 0.20f)
                 }
-                drawPath(spike, hairColor, style = Stroke(4f))
+                drawPath(cap, hairColor, style = Stroke(5f))
+                for (i in -2..2) {
+                    val x = cx + i * r * 0.32f
+                    val spike = Path().apply {
+                        moveTo(x - r * 0.12f, cy - h * 0.27f)
+                        lineTo(x + r * 0.02f, cy - h * 0.43f - (if (i % 2 == 0) h * 0.03f else 0f))
+                        lineTo(x + r * 0.18f, cy - h * 0.24f)
+                    }
+                    drawPath(spike, hairColor, style = Stroke(4f))
+                }
+                drawLine(Color(0xFF343A4D), Offset(cx - r * 0.44f, cy + h * 0.55f), Offset(cx, cy + h * 0.48f), 4f)
+                drawLine(Color(0xFF343A4D), Offset(cx, cy + h * 0.48f), Offset(cx + r * 0.44f, cy + h * 0.55f), 4f)
             }
-            "gojo" -> drawLine(Color(0xFF353943), Offset(cx - r * 0.85f, cy + h * 0.04f),
-                Offset(cx + r * 0.85f, cy + h * 0.04f), 8f)
+            "gojo" -> {
+                val fringe = Path().apply {
+                    moveTo(cx - r * 1.02f, cy - h * 0.02f)
+                    quadraticTo(cx - r * 1.10f, cy - h * 0.42f, cx - r * 0.55f, cy - h * 0.43f)
+                    lineTo(cx - r * 0.22f, cy - h * 0.58f)
+                    lineTo(cx + r * 0.03f, cy - h * 0.39f)
+                    lineTo(cx + r * 0.37f, cy - h * 0.57f)
+                    lineTo(cx + r * 0.50f, cy - h * 0.34f)
+                    quadraticTo(cx + r * 1.12f, cy - h * 0.35f, cx + r * 1.02f, cy + h * 0.02f)
+                }
+                drawPath(fringe, hairColor, style = Stroke(5f))
+                val blindfold = Path().apply {
+                    moveTo(cx - r * 0.88f, cy + h * 0.025f)
+                    quadraticTo(cx, cy - h * 0.04f, cx + r * 0.88f, cy + h * 0.025f)
+                    lineTo(cx + r * 0.82f, cy + h * 0.13f)
+                    quadraticTo(cx, cy + h * 0.19f, cx - r * 0.82f, cy + h * 0.13f)
+                    close()
+                }
+                drawPath(blindfold, Color(0xFF303746))
+                drawLine(Color(0xFF68758B), Offset(cx - r * 0.72f, cy + h * 0.075f), Offset(cx + r * 0.72f, cy + h * 0.075f), 1.5f)
+                drawLine(Color(0xFF303746), Offset(cx - r * 0.40f, cy + h * 0.55f), Offset(cx, cy + h * 0.48f), 4f)
+                drawLine(Color(0xFF303746), Offset(cx, cy + h * 0.48f), Offset(cx + r * 0.40f, cy + h * 0.55f), 4f)
+            }
             "luffy" -> {
+                val hair = Path().apply {
+                    moveTo(cx - r * 0.92f, cy - h * 0.09f)
+                    quadraticTo(cx - r * 0.45f, cy - h * 0.34f, cx, cy - h * 0.19f)
+                    quadraticTo(cx + r * 0.55f, cy - h * 0.35f, cx + r * 0.92f, cy - h * 0.08f)
+                }
+                drawPath(hair, hairColor, style = Stroke(4f))
                 val hat = Path().apply {
-                    moveTo(cx - r * 1.23f, cy - h * 0.27f)
-                    quadraticTo(cx, cy - h * 0.51f, cx + r * 1.23f, cy - h * 0.27f)
-                    lineTo(cx + r * 1.26f, cy - h * 0.19f)
-                    quadraticTo(cx, cy - h * 0.12f, cx - r * 1.26f, cy - h * 0.19f)
+                    moveTo(cx - r * 1.28f, cy - h * 0.25f)
+                    quadraticTo(cx, cy - h * 0.57f, cx + r * 1.28f, cy - h * 0.25f)
+                    lineTo(cx + r * 1.33f, cy - h * 0.16f)
+                    quadraticTo(cx, cy - h * 0.09f, cx - r * 1.33f, cy - h * 0.16f)
                     close()
                 }
                 drawPath(hat, Color(0xFFD9B66F), style = Stroke(4f))
-                drawLine(Color(0xFFB64F45), Offset(cx - r * 1.18f, cy - h * 0.20f),
-                    Offset(cx + r * 1.18f, cy - h * 0.20f), 4f)
+                drawLine(Color(0xFFB64F45), Offset(cx - r * 1.25f, cy - h * 0.20f), Offset(cx + r * 1.25f, cy - h * 0.20f), 4f)
                 drawLine(dark, Offset(cx - r * 0.38f, cy + h * 0.16f), Offset(cx - r * 0.18f, cy + h * 0.12f), 2f)
+                drawLine(Color(0xFF30343D), Offset(cx - r * 0.42f, cy + h * 0.55f), Offset(cx, cy + h * 0.47f), 4f)
+                drawLine(Color(0xFF30343D), Offset(cx, cy + h * 0.47f), Offset(cx + r * 0.42f, cy + h * 0.55f), 4f)
             }
             "tanjiro" -> {
-                drawLine(Color(0xFF9D554C), Offset(cx - r * 0.08f, cy - h * 0.24f), Offset(cx + r * 0.22f, cy - h * 0.30f), 5f)
-                drawCircle(Color(0xFFB77B45), r * 0.11f, Offset(cx - r * 1.12f, cy + h * 0.38f), style = Stroke(2f))
-                drawCircle(Color(0xFFB77B45), r * 0.11f, Offset(cx + r * 1.12f, cy + h * 0.38f), style = Stroke(2f))
+                val fringe = Path().apply {
+                    moveTo(cx - r * 1.02f, cy - h * 0.01f)
+                    quadraticTo(cx - r * 0.95f, cy - h * 0.43f, cx - r * 0.50f, cy - h * 0.38f)
+                    lineTo(cx - r * 0.22f, cy - h * 0.55f)
+                    lineTo(cx + r * 0.02f, cy - h * 0.34f)
+                    lineTo(cx + r * 0.30f, cy - h * 0.52f)
+                    lineTo(cx + r * 0.52f, cy - h * 0.33f)
+                    quadraticTo(cx + r * 1.05f, cy - h * 0.39f, cx + r * 1.02f, cy - h * 0.01f)
+                }
+                drawPath(fringe, hairColor, style = Stroke(5f))
+                drawLine(Color(0xFF9D554C), Offset(cx - r * 0.18f, cy - h * 0.22f), Offset(cx + r * 0.24f, cy - h * 0.31f), 5f)
+                drawLine(Color(0xFFD0A15B), Offset(cx - r * 0.12f, cy - h * 0.20f), Offset(cx + r * 0.20f, cy - h * 0.27f), 1.5f)
+                for (side in listOf(-1f, 1f)) {
+                    drawCircle(Color(0xFFB77B45), r * 0.11f, Offset(cx + side * r * 1.12f, cy + h * 0.38f), style = Stroke(2f))
+                    drawLine(Color(0xFFB77B45), Offset(cx + side * r * 1.12f, cy + h * 0.49f), Offset(cx + side * r * 1.12f, cy + h * 0.57f), 2f)
+                }
+                drawLine(Color(0xFF435344), Offset(cx - r * 0.42f, cy + h * 0.55f), Offset(cx, cy + h * 0.48f), 4f)
+                drawLine(Color(0xFF435344), Offset(cx, cy + h * 0.48f), Offset(cx + r * 0.42f, cy + h * 0.55f), 4f)
             }
         }
     }
@@ -738,16 +808,27 @@ private fun DrawingPad(modifier: Modifier = Modifier) {
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(9.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            horizontalArrangement = Arrangement.SpaceBetween) {
             listOf(Color(0xFF242631), Color(0xFF9B3848), Color(0xFF315FAD), Color(0xFF24815E), Color(0xFFD39A37), Paper).forEach { color ->
-                Box(Modifier.size(29.dp).clip(CircleShape).background(color)
-                    .then(if (selectedColor == color) Modifier.border(2.dp, Color.White, CircleShape) else Modifier)
+                Box(Modifier.size(30.dp).clip(CircleShape).background(color)
+                    .then(if (selectedColor == color) Modifier.border(2.dp, Accent, CircleShape) else Modifier)
                     .clickable { selectedColor = color })
             }
-            Spacer(Modifier.weight(1f))
-            Text("حجم القلم", color = Color(0xFFB9BECC), fontSize = 11.sp)
-            TextButton(onClick = { brushWidth = if (brushWidth < 0.008f) 0.012f else if (brushWidth < 0.015f) 0.020f else 0.004f }) {
-                Text(if (brushWidth < 0.008f) "رفيع" else if (brushWidth < 0.015f) "متوسط" else "عريض", color = Accent, fontSize = 11.sp)
+        }
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("سُمك القلم", color = Color(0xFFB9BECC), fontSize = 11.sp)
+            TextButton(onClick = { brushWidth = 0.004f }, contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp)) {
+                Text(if (brushWidth == 0.004f) "✓ رفيع" else "رفيع", color = if (brushWidth == 0.004f) AccentMint else Accent, fontSize = 11.sp)
+            }
+            TextButton(onClick = { brushWidth = 0.012f }, contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp)) {
+                Text(if (brushWidth == 0.012f) "✓ متوسط" else "متوسط", color = if (brushWidth == 0.012f) AccentMint else Accent, fontSize = 11.sp)
+            }
+            TextButton(onClick = { brushWidth = 0.020f }, contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp)) {
+                Text(if (brushWidth == 0.020f) "✓ عريض" else "عريض", color = if (brushWidth == 0.020f) AccentMint else Accent, fontSize = 11.sp)
+            }
+            TextButton(onClick = { selectedColor = Paper }, contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp)) {
+                Text("ممحاة", color = Accent, fontSize = 11.sp)
             }
         }
         Canvas(
