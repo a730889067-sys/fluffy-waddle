@@ -135,13 +135,20 @@ private val lessons = listOf(
             "أضف الياقة العالية وخطوط الملابس الأساسية.",
             "أكمل التباين بين الشعر الفاتح والظلال الداكنة."),
         "ابدأ بخصل قليلة وواضحة؛ التفاصيل الكثيرة لا تعوّض ضعف شكل الرأس."),
-    Lesson("luffy", "دراسة ملامح لوفي", "تطبيق الشخصيات", "مبتدئ", "13 دقيقة", "luffy", Color(0xFFE7A45F),
-        listOf("ارسم دائرة الرأس والفك، واترك مساحة كافية للقبعة.",
-            "حدد العينين والأنف والفم والندبة الصغيرة أسفل العين.",
-            "ارسم ابتسامة واسعة بخط منحني بسيط.",
-            "أضف الشعر أسفل حافة القبعة.",
-            "ارسم قبعة القش وحافتها العريضة ثم أضف الظلال."),
-        "اجعل القبعة متوازنة مع الرأس؛ لا تبدأ بتفاصيل القش قبل ضبط شكلها."),
+    Lesson("luffy_gear5", "لوفي — الجير الخامس", "One Piece • Gear 5", "متقدم", "35 دقيقة", "luffy5", Color(0xFF9B78E8),
+        listOf("ارسم خط الحركة المائل وحدد اتجاه القفزة قبل التفاصيل.",
+            "ابنِ الجمجمة والفك واترك مساحة للشعر الأبيض المنتفش.",
+            "قسّم الجسم إلى صدر وحوض وحدد الكتفين والمفاصل.",
+            "ارسم الأطراف وكبّر اليد القريبة بسبب المنظور.",
+            "شكّل الصدر والكتفين والبطن بمجموعات عضلية متناسقة.",
+            "أكمل الوجه: العينان والحاجبان والأنف والابتسامة والأسنان والندبة.",
+            "ارسم كتلة الشعر البيضاء ثم الخصل والتموجات المتداخلة.",
+            "أضف سحب الدخان الملتفة حول الجسم لإظهار العمق.",
+            "ارسم المعطف المفتوح وحواف الفرو والطيات المتحركة.",
+            "أضف الشورت والحزام البنفسجي والشرائط المتطايرة.",
+            "أكمل راحة اليد والأصابع والقبضة والصنادل بالتفصيل.",
+            "نظّف الحبر ثم لوّن البشرة والشعر والدخان والقماش والظلال واللمعات."),
+        "لا تصغّر اليد القريبة من المشاهد؛ المنظور هو سبب ظهورها أكبر من بقية الجسم."),
     Lesson("tanjiro", "دراسة ملامح تانجيرو", "تطبيق الشخصيات", "متوسط", "15 دقيقة", "tanjiro", Color(0xFFD77C68),
         listOf("حدد الرأس والفك واتجاه الوجه بخطوط بناء خفيفة.",
             "ارسم العينين والحاجبين مع تعبير هادئ ومركز.",
@@ -479,6 +486,21 @@ private fun stepExplanation(lesson: Lesson, step: Int): String {
             "ارسم الياقة العالية حول الرقبة والكتفين. اجعلها أعرض من الرقبة مع طيات قليلة واضحة بدل خطوط كثيرة.",
             "وازن بين الشعر الفاتح والعصابة والملابس الداكنة. أضف درجات ظل رمادية باردة داخل الخصل واترك مساحات بيضاء للضوء."
         )
+        "luffy5" -> listOf(
+            "ارسم خط حركة قطريًا من الرأس إلى القدمين. حدّد الكتف المتقدم واترك مساحة لليد القريبة من المشاهد.",
+            "ارسم دائرة الجمجمة ثم الفك والذقن. اجعل الوجه أعرض من الذقن واترك مساحة علوية للشعر المنتفش.",
+            "ضع شكلًا بيضاويًا مائلًا للصدر وآخر للحوض، وحدد خط الكتفين ومحور الوسط واتجاه الالتواء.",
+            "ارسم الذراعين والساقين ككتل أسطوانية مع المفاصل. كبّر اليد القريبة تدريجيًا بسبب المنظور.",
+            "حدّد الصدر والكتفين ثم قسّم البطن إلى مجموعات عضلية تتبع اتجاه القفص الصدري.",
+            "ضع العينين والحاجبين والأنف ثم الابتسامة العريضة والأسنان والندبة، واترك لمعان العينين واضحًا.",
+            "ارسم كتلة الشعر البيضاء كغيوم كبيرة أولًا، ثم خصلًا ملتفة ومتفاوتة الطول حول الجبهة والرأس.",
+            "أضف مسارات الدخان حول الجسم؛ اجعل بعضها خلف الأطراف وبعضها أمامها لإظهار العمق.",
+            "ارسم المعطف المفتوح وحواف الفرو عند الكتفين والأكمام، واربط الطيات باتجاه الحركة.",
+            "حدّد الشورت ثم الحزام البنفسجي حول الخصر والشرائط الطويلة المتطايرة.",
+            "كبّر راحة اليد الأمامية وقسّم الأصابع إلى مفاصل وأطوال صحيحة. أكمل القبضة والصنادل وأصابع القدم.",
+            "ثبّت الحبر بسماكات مختلفة. لوّن البشرة بدرجات دافئة والشعر والمعطف والدخان بالأبيض مع ظلال بنفسجية، والحزام بالبنفسجي، ثم أضف اللمعات."
+        )
+        "luffy5" -> listOf("محور الحركة من الرأس إلى القدمين", "الجمجمة والفك ومنطقة الشعر", "الصدر والحوض وخط الكتفين", "مفاصل الأطراف واليد الأمامية", "الصدر والكتف والبطن", "العينان والأنف والفم والندبة", "محيط الرأس والجبهة والجانبان", "حول الجسم وخلف الأطراف وأمامها", "الكتفان والأكمام وحواف الفرو", "الخصر والشورت والشرائط", "راحة اليد والأصابع والقبضة والقدمان", "كامل حدود الرسم ومناطق الضوء والظل"),
         "luffy" -> listOf(
             "ارسم دائرة الرأس والفك، واترك فراغًا كبيرًا أعلى الرأس للقبعة. انظر إلى الصورة المرجعية لتحدد عرض القبعة بالنسبة للوجه.",
             "ضع العينين والأنف والفم والندبة أسفل العين. لا تجعل العينين ضخمتين جدًا؛ ابتسامة لوفي هي العنصر الأوضح في التعبير.",
@@ -526,6 +548,7 @@ private fun stepLocation(lesson: Lesson, step: Int): String {
 private fun characterPortrait(lesson: Lesson): Int = when (lesson.kind) {
     "jinwoo" -> R.drawable.character_jinwoo
     "gojo" -> R.drawable.character_gojo
+    "luffy5" -> R.drawable.character_luffy
     "luffy" -> R.drawable.character_luffy
     "tanjiro" -> R.drawable.character_tanjiro
     else -> 0
@@ -757,9 +780,37 @@ private fun GuideIllustration(lesson: Lesson, step: Int, modifier: Modifier = Mo
             "pose" -> drawPoseStudy(step, dark, lesson.accent, guide, w, h)
             "hands" -> drawHandsStudy(step, dark, lesson.accent, guide, w, h)
             "clothes" -> drawClothesStudy(step, dark, lesson.accent, guide, w, h)
+            "luffy5" -> drawLuffyGearFiveStudy(step, w, h)
             else -> drawFaceStudy(step, lesson.kind, dark, lesson.accent, guide, w, h)
         }
     }
+}
+
+
+private fun DrawScope.drawLuffyGearFiveStudy(step: Int, w: Float, h: Float) {
+    val ink=Color(0xFF37313D); val guide=Color(0xFFBDB6CA); val skin=Color(0xFFF0B18E)
+    val white=Color(0xFFFEFCFF); val purple=Color(0xFF7650B6); val cold=Color(0xFFECE8FA)
+    fun p(x:Float,y:Float)=Offset(w*x,h*y)
+    fun ln(x1:Float,y1:Float,x2:Float,y2:Float,c:Color=ink,t:Float=.004f)=drawLine(c,p(x1,y1),p(x2,y2),w*t,cap=androidx.compose.ui.graphics.StrokeCap.Round)
+    fun ol(q:Path,c:Color=ink,t:Float=.005f)=drawPath(q,c,style=Stroke(w*t,cap=androidx.compose.ui.graphics.StrokeCap.Round,join=androidx.compose.ui.graphics.StrokeJoin.Round))
+    val head=Path().apply{moveTo(w*.405f,h*.205f);cubicTo(w*.40f,h*.145f,w*.435f,h*.105f,w*.49f,h*.11f);cubicTo(w*.555f,h*.105f,w*.59f,h*.15f,w*.585f,h*.215f);cubicTo(w*.58f,h*.285f,w*.545f,h*.315f,w*.50f,h*.32f);cubicTo(w*.45f,h*.31f,w*.415f,h*.27f,w*.405f,h*.205f);close()}
+    val body=Path().apply{moveTo(w*.43f,h*.315f);cubicTo(w*.385f,h*.32f,w*.36f,h*.355f,w*.35f,h*.42f);lineTo(w*.39f,h*.635f);cubicTo(w*.44f,h*.69f,w*.55f,h*.69f,w*.61f,h*.625f);lineTo(w*.65f,h*.42f);cubicTo(w*.63f,h*.355f,w*.59f,h*.32f,w*.56f,h*.315f);close()}
+    val limbs=Path().apply{moveTo(w*.40f,h*.35f);cubicTo(w*.32f,h*.34f,w*.27f,h*.39f,w*.22f,h*.45f);lineTo(w*.12f,h*.48f);cubicTo(w*.08f,h*.43f,w*.06f,h*.46f,w*.08f,h*.51f);cubicTo(w*.15f,h*.57f,w*.30f,h*.51f,w*.43f,h*.455f);moveTo(w*.585f,h*.355f);cubicTo(w*.67f,h*.34f,w*.73f,h*.38f,w*.79f,h*.43f);cubicTo(w*.87f,h*.45f,w*.92f,h*.38f,w*.95f,h*.42f);cubicTo(w*.98f,h*.49f,w*.90f,h*.56f,w*.84f,h*.55f);cubicTo(w*.76f,h*.56f,w*.68f,h*.51f,w*.59f,h*.48f)}
+    val legs=Path().apply{moveTo(w*.43f,h*.63f);cubicTo(w*.39f,h*.70f,w*.36f,h*.78f,w*.34f,h*.87f);lineTo(w*.43f,h*.91f);cubicTo(w*.48f,h*.84f,w*.49f,h*.75f,w*.50f,h*.68f);moveTo(w*.52f,h*.67f);cubicTo(w*.56f,h*.75f,w*.62f,h*.81f,w*.70f,h*.88f);lineTo(w*.79f,h*.86f);cubicTo(w*.76f,h*.75f,w*.68f,h*.68f,w*.62f,h*.63f)}
+    val coat=Path().apply{moveTo(w*.41f,h*.31f);lineTo(w*.34f,h*.35f);lineTo(w*.29f,h*.50f);lineTo(w*.35f,h*.60f);lineTo(w*.43f,h*.48f);lineTo(w*.47f,h*.40f);lineTo(w*.50f,h*.50f);lineTo(w*.54f,h*.40f);lineTo(w*.59f,h*.48f);lineTo(w*.66f,h*.60f);lineTo(w*.72f,h*.49f);lineTo(w*.65f,h*.35f);lineTo(w*.58f,h*.31f);close()}
+    if(step>=11){drawPath(legs,skin);drawPath(limbs,skin);drawPath(body,skin);drawPath(head,skin);drawPath(coat,white);drawOval(purple,Offset(w*.38f,h*.63f),androidx.compose.ui.geometry.Size(w*.30f,h*.055f))}
+    if(step>=0){ln(.49f,.08f,.50f,.91f,guide);ln(.38f,.36f,.65f,.37f,guide);ln(.50f,.22f,.50f,.69f,guide);drawCircle(guide,w*.08f,p(.50f,.21f),style=Stroke(w*.003f));drawOval(guide,Offset(w*.36f,h*.32f),androidx.compose.ui.geometry.Size(w*.28f,h*.26f),style=Stroke(w*.003f))}
+    if(step>=1){ol(head);ln(.42f,.24f,.58f,.24f,guide,.002f);ln(.50f,.11f,.50f,.31f,guide,.002f)}
+    if(step>=2){ol(body,guide);ol(limbs,guide);ol(legs,guide)}
+    if(step>=3){for(i in 0..2){val y=.47f+i*.045f;ln(.455f,y,.49f,y+.012f);ln(.51f,y+.012f,.545f,y)};ln(.42f,.38f,.395f,.44f);ln(.58f,.38f,.61f,.44f);ln(.445f,.43f,.455f,.48f);ln(.555f,.43f,.545f,.48f)}
+    if(step>=4){for(x in listOf(.455f,.545f)){val eye=Path().apply{moveTo(w*(x-.018f),h*.205f);quadraticTo(w*x,h*.185f,w*(x+.018f),h*.205f);quadraticTo(w*x,h*.225f,w*(x-.018f),h*.205f)};ol(eye);drawCircle(Color(0xFFE6A4D1),w*.008f,p(x,.205f))};ln(.425f,.183f,.462f,.174f);ln(.538f,.174f,.575f,.183f);ln(.50f,.21f,.493f,.232f);val grin=Path().apply{moveTo(w*.445f,h*.245f);quadraticTo(w*.50f,h*.292f,w*.557f,h*.245f);quadraticTo(w*.50f,h*.276f,w*.445f,h*.245f);close()};drawPath(grin,Color(0xFF8D404E));ln(.455f,.25f,.545f,.25f,white,.003f);for(i in 0..4)ln(.462f+i*.017f,.25f,.462f+i*.017f,.265f,white,.0018f);ln(.405f,.205f,.415f,.225f,Color(0xFFB94E53))}
+    if(step>=5){val hair=Path().apply{moveTo(w*.41f,h*.20f);cubicTo(w*.34f,h*.17f,w*.34f,h*.09f,w*.40f,h*.10f);cubicTo(w*.40f,h*.035f,w*.47f,h*.04f,w*.48f,h*.095f);cubicTo(w*.52f,h*.025f,w*.60f,h*.06f,w*.57f,h*.13f);cubicTo(w*.64f,h*.12f,w*.65f,h*.19f,w*.585f,h*.22f)};ol(hair);for(i in 0..6){val x=.385f+i*.034f;val curl=Path().apply{moveTo(w*x,h*.15f);cubicTo(w*(x-.035f),h*.10f,w*(x+.04f),h*.08f,w*(x+.015f),h*.13f)};ol(curl,Color(0xFFB5A9D6),.003f)}}
+    if(step>=6){for(side in listOf(-1f,1f)){val cloud=Path().apply{moveTo(w*(.5f+side*.16f),h*.34f);cubicTo(w*(.5f+side*.34f),h*.20f,w*(.5f+side*.40f),h*.30f,w*(.5f+side*.33f),h*.36f);cubicTo(w*(.5f+side*.27f),h*.41f,w*(.5f+side*.38f),h*.43f,w*(.5f+side*.40f),h*.38f)};ol(cloud,cold,.014f);ol(cloud,guide,.003f)}}
+    if(step>=7){ol(coat);for(i in 0..5){val x=.35f+i*.012f;ln(x,.34f,x+.01f,.39f,cold,.006f);ln(.63f+i*.012f,.34f,.62f+i*.012f,.39f,cold,.006f)}}
+    if(step>=8){val shorts=Path().apply{moveTo(w*.40f,h*.625f);lineTo(w*.60f,h*.625f);lineTo(w*.67f,h*.76f);lineTo(w*.54f,h*.775f);lineTo(w*.50f,h*.70f);lineTo(w*.43f,h*.78f);lineTo(w*.34f,h*.75f);close()};ol(shorts);val sash=Path().apply{moveTo(w*.36f,h*.62f);quadraticTo(w*.48f,h*.65f,w*.62f,h*.62f);lineTo(w*.69f,h*.66f);lineTo(w*.62f,h*.70f);quadraticTo(w*.47f,h*.69f,w*.36f,h*.66f);close()};drawPath(sash,purple);ol(sash);val ribbon=Path().apply{moveTo(w*.61f,h*.66f);cubicTo(w*.76f,h*.68f,w*.82f,h*.62f,w*.96f,h*.65f);cubicTo(w*.84f,h*.72f,w*.76f,h*.73f,w*.63f,h*.69f)};ol(ribbon,purple,.012f)}
+    if(step>=9){val hand=Path().apply{moveTo(w*.78f,h*.40f);cubicTo(w*.81f,h*.34f,w*.88f,h*.34f,w*.91f,h*.38f);cubicTo(w*.94f,h*.36f,w*.96f,h*.39f,w*.94f,h*.43f);cubicTo(w*.97f,h*.46f,w*.94f,h*.49f,w*.91f,h*.48f);cubicTo(w*.91f,h*.54f,w*.87f,h*.55f,w*.85f,h*.51f);cubicTo(w*.82f,h*.55f,w*.78f,h*.52f,w*.80f,h*.48f);close()};ol(hand);for(i in 0..3)ln(.82f+i*.03f,.40f,.84f+i*.03f,.35f);ln(.82f,.46f,.90f,.44f,Color(0xFFD98A78),.003f);drawCircle(skin,w*.045f,p(.105f,.48f),style=Stroke(w*.005f))}
+    if(step>=10){ol(head);ol(body);ol(limbs);ol(legs);ln(.50f,.31f,.50f,.35f);ln(.43f,.45f,.45f,.50f);ln(.57f,.45f,.55f,.50f);ln(.42f,.57f,.47f,.59f);ln(.54f,.59f,.59f,.56f);ln(.29f,.88f,.43f,.91f);ln(.68f,.87f,.82f,.86f)}
+    if(step>=11){drawPath(legs,Color(0xFFD98A78).copy(alpha=.28f),style=Stroke(w*.018f));drawPath(limbs,Color(0xFFD98A78).copy(alpha=.24f),style=Stroke(w*.012f));drawPath(body,Color(0xFFD98A78).copy(alpha=.20f),style=Stroke(w*.012f));drawCircle(Color.White,w*.012f,p(.468f,.165f));drawCircle(Color.White,w*.007f,p(.55f,.165f));ln(.40f,.52f,.43f,.55f,Color(0xFFBFAFEA),.003f);ln(.60f,.52f,.57f,.55f,Color(0xFFBFAFEA),.003f)}
 }
 
 private fun DrawScope.drawEyeStudy(progress: Int, dark: Color, accent: Color, guide: Color, w: Float, h: Float) {
