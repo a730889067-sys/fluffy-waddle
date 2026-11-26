@@ -1178,6 +1178,7 @@ private fun DrawingPad(lesson: Lesson, step: Int, modifier: Modifier = Modifier)
                     }
                 }
             }
+            }
             if (zoomMode) {
                 Text(
                     "حرّك إصبعين للتنقل، وباعد بينهما للتكبير",
