@@ -10,8 +10,10 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -28,6 +30,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -35,18 +38,21 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val Background = Color(0xFF090B12)
-private val SurfaceDark = Color(0xFF151A27)
-private val SurfaceRaised = Color(0xFF1D2433)
-private val Accent = Color(0xFF9C83FF)
-private val AccentMint = Color(0xFF74D9B0)
-private val Ink = Color(0xFF20232B)
-private val Paper = Color(0xFFFAF8F2)
+private val Background = Color(0xFFF4F5FA)
+private val SurfaceDark = Color(0xFFFFFFFF)
+private val SurfaceRaised = Color(0xFFEBEDF5)
+private val Accent = Color(0xFF7359C8)
+private val AccentMint = Color(0xFF2D9479)
+private val Ink = Color(0xFF292A3D)
+private val Muted = Color(0xFF73788C)
+private val Paper = Color(0xFFFFFEFC)
 
 private data class Lesson(
     val id: String, val title: String, val series: String, val level: String,
@@ -209,6 +215,18 @@ private fun AcademyApp() {
         storeLastPosition(lesson, step)
     }
 
+    BackHandler(enabled = true) {
+        val activeLesson = selectedLesson
+        if (activeLesson == null) {
+            Toast.makeText(context, "أنت في الصفحة الرئيسية", Toast.LENGTH_SHORT).show()
+        } else if (step > 0) {
+            step -= 1
+            storeLastPosition(activeLesson, step)
+        } else {
+            selectedLesson = null
+        }
+    }
+
     fun completeLesson(lesson: Lesson) {
         val updated = completedIds + lesson.id
         completedIds = updated
@@ -218,7 +236,7 @@ private fun AcademyApp() {
         Toast.makeText(context, "أحسنت! تم إكمال الدرس وحفظ تقدمك.", Toast.LENGTH_SHORT).show()
     }
 
-    MaterialTheme(colorScheme = darkColorScheme(
+    MaterialTheme(colorScheme = lightColorScheme(
         background = Background, surface = SurfaceDark, primary = Accent, secondary = AccentMint
     )) {
         Surface(Modifier.fillMaxSize(), color = Background) {
@@ -266,15 +284,15 @@ private fun HomeScreen(
             Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(SurfaceDark).padding(20.dp)) {
                 Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
                     Text("ANIME ART ACADEMY", color = Accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    Text("تعلّم الرسم\nخطوة بخطوة", color = Color.White, fontSize = 31.sp, lineHeight = 38.sp, fontWeight = FontWeight.Bold)
-                    Text("من أول خط إلى رسم شخصية كاملة", color = Color(0xFFC5C9D6), fontSize = 14.sp)
+                    Text("تعلّم الرسم\nخطوة بخطوة", color = Ink, fontSize = 31.sp, lineHeight = 38.sp, fontWeight = FontWeight.Bold)
+                    Text("من أول خط إلى رسم شخصية كاملة", color = Muted, fontSize = 14.sp)
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                         Box(Modifier.size(7.dp).background(AccentMint, CircleShape))
                         Text("الدروس والرسومات تعمل دون إنترنت", color = AccentMint, fontSize = 12.sp)
                     }
                     Spacer(Modifier.height(5.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("تقدمك المحفوظ", color = Color(0xFFC5C9D6), fontSize = 12.sp)
+                        Text("تقدمك المحفوظ", color = Muted, fontSize = 12.sp)
                         Spacer(Modifier.weight(1f))
                         Text("${completedIds.size} من ${lessons.size} دروس", color = AccentMint, fontSize = 12.sp)
                     }
@@ -309,16 +327,16 @@ private fun HomeScreen(
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                             Text("تابع من حيث توقفت", color = Accent, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             Text(lastLesson.title, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                            Text("الخطوة ${lastStep + 1} من ${lastLesson.steps.size}", color = Color(0xFF9EA5B6), fontSize = 11.sp)
+                            Text("الخطوة ${lastStep + 1} من ${lastLesson.steps.size}", color = Muted, fontSize = 11.sp)
                         }
-                        Text("‹", color = Color(0xFFB6BBD0), fontSize = 24.sp)
+                        Text("‹", color = Muted, fontSize = 24.sp)
                     }
                 }
             }
         }
         item {
             Text("مسار التعلّم", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Bold)
-            Text("ابدأ بالأساسيات ثم انتقل إلى الشخصيات", color = Color(0xFF9EA5B6), fontSize = 13.sp)
+            Text("ابدأ بالأساسيات ثم انتقل إلى الشخصيات", color = Muted, fontSize = 13.sp)
         }
         items(lessons) { lesson ->
             LessonCard(lesson, isCompleted = lesson.id in completedIds) { onSelect(lesson) }
@@ -328,7 +346,7 @@ private fun HomeScreen(
                 Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text("ملاحظة", color = AccentMint, fontWeight = FontWeight.Bold)
                     Text("الرسومات داخل الدروس توضيحية أصلية ومبسطة للتدريب، وليست صورًا رسمية من أعمال الأنمي.",
-                        color = Color(0xFFB8BECC), fontSize = 12.sp)
+                        color = Muted, fontSize = 12.sp)
                 }
             }
             Spacer(Modifier.height(18.dp))
@@ -357,12 +375,138 @@ private fun LessonCard(lesson: Lesson, isCompleted: Boolean, onClick: () -> Unit
                 Text(lesson.series, color = lesson.accent, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                 Text(lesson.title, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 Text("${lesson.level}  •  ${lesson.steps.size} خطوات  •  ${lesson.duration}",
-                    color = Color(0xFF9EA5B6), fontSize = 11.sp)
+                    color = Muted, fontSize = 11.sp)
             }
-            Text(if (isCompleted) "✓" else "‹", color = if (isCompleted) AccentMint else Color(0xFFB6BBD0), fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text(if (isCompleted) "✓" else "‹", color = if (isCompleted) AccentMint else Muted, fontSize = 22.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
+
+
+private fun stepExplanation(lesson: Lesson, step: Int): String {
+    val details = when (lesson.kind) {
+        "face" -> listOf(
+            "خفّف ضغط القلم وارسم دائرة واسعة بخط متقطع أو خفيف. هذه الدائرة تمثل الجمجمة فقط، واترك مساحة أسفلها لإضافة الفك.",
+            "مرّر خطًا رأسيًا خفيفًا في منتصف الدائرة ليحدد اتجاه الوجه. أضف خط العينين أفقيًا، واجعله يلتف قليلًا إذا كان الرأس مائلًا.",
+            "ابدأ من جانبي الدائرة وانزل بخطين ناعمين نحو الذقن. اجعل الفك أضيق من أعلى الرأس ولا تحوّل الوجه إلى مربع.",
+            "ضع العينين على خط العينين، ثم الأنف أسفل المنتصف بقليل والفم أسفل الأنف. اترك المسافة بين العينين قريبة من عرض عين واحدة.",
+            "امسح خطوط البناء الزائدة تدريجيًا، ثم قوّ حدود الفك والعينين. اجعل الظل تحت الشعر والذقن خفيفًا ومتسقًا مع اتجاه الضوء."
+        )
+        "eye" -> listOf(
+            "ابدأ من الزاوية الخارجية وارسم قوس الجفن العلوي باتجاه الزاوية الداخلية. اجعل منتصف القوس أعلى قليلًا من الطرفين.",
+            "ارسم الجفن السفلي بخط أرق وأهدأ، ولا تغلق الشكل بقوة عند الزاويتين. اترك فراغًا صغيرًا يعطي العين شكلًا طبيعيًا.",
+            "ارسم دائرة القزحية داخل فتحة العين، واجعل جزءًا منها مختفيًا خلف الجفن العلوي. ضع الحدقة في مركز القزحية.",
+            "اترك نقطتين صغيرتين من الورق الأبيض داخل القزحية، واحدة أكبر من الأخرى. لا تمرر التلوين فوقهما حتى يبقى انعكاس الضوء واضحًا.",
+            "غلّظ الجفن العلوي والرموش الخارجية، ثم ظلّل أعلى القزحية تدريجيًا. أبقِ أسفل العين أفتح حتى لا تبدو العين ثقيلة."
+        )
+        "hair" -> listOf(
+            "ارسم حدود كتلة الشعر حول الرأس كأنها قبعة كبيرة. لا تبدأ بالشعيرات الفردية؛ ركّز أولًا على الشكل الخارجي العام.",
+            "قسّم الكتلة إلى ثلاث أو أربع مجموعات رئيسية. اجعل كل مجموعة تتجه من الجذور إلى طرف واضح بدل توزيع خطوط عشوائية.",
+            "حوّل أطراف المجموعات إلى خصل مدببة باستخدام منحنيات طويلة. غيّر طول الخصل واتجاهها قليلًا لتجنب شكل الشعر المتكرر.",
+            "أضف خصل الجبهة فوق خط الوجه، وارسم بعضها أمام بعض. اترك فراغات صغيرة بين الخصل حتى لا تصبح كتلة سوداء واحدة.",
+            "اجعل الظل أسفل كل خصلة متداخلة، واترك شريطًا رفيعًا مضيئًا على الجهة المواجهة للنور. لا تظلّل كل الشعر بالدرجة نفسها."
+        )
+        "shade" -> listOf(
+            "اختر اتجاه الضوء أولًا، مثل أعلى اليسار. ضع سهمًا صغيرًا خارج الرسم لتتذكر الاتجاه طوال التظليل.",
+            "ظلّل الجهة المقابلة لمصدر الضوء بخفة شديدة. ابدأ بدرجة فاتحة ثم قوّ الظل تدريجيًا بدل الضغط بقوة من البداية.",
+            "أضف ظلالًا قصيرة أسفل الشعر والأنف والذقن، لأنها مناطق يحجب فيها شكلٌ الضوء عن الجزء الذي تحته.",
+            "اجعل أغمق الدرجات في نقاط التقاء الأشكال فقط، مثل أسفل الغرة أو بين طيات الملابس. اترك وسط الخد والجبهة أفتح.",
+            "ادمج حدود الظل بحركات صغيرة متدرجة، واترك مساحات بيضاء واضحة للّمعان. لا تغيّر اتجاه الضوء بين أجزاء الرسم."
+        )
+        "body" -> listOf(
+            "ارسم خط حركة رأسيًا خفيفًا من الرأس إلى الحوض. حدّد طول الشخصية قبل رسم الملابس أو العضلات.",
+            "ضع شكلًا بيضاويًا للصدر وآخر أصغر للحوض. اجعل بينهما مساحة للخصر، ووجّه الشكلين حسب ميل الجسم.",
+            "حدّد عرض الكتفين وعرض الحوض بخطين بسيطين. لا تجعل الجانبين متطابقين إذا كانت الشخصية تقف بزاوية.",
+            "ارسم الذراعين والساقين كأنابيب بسيطة، وضع دائرة صغيرة عند كل مفصل. راعِ أن المرفق والركبة ليسا في منتصف الطرف تمامًا.",
+            "حوّل الهيكل إلى حدود جسم ناعمة. نظّف خطوط البناء بعد التأكد من توازن الوقفة وطول الأطراف."
+        )
+        "pose" -> listOf(
+            "ابدأ بخط طويل واحد يوضح اتجاه الحركة من الرأس إلى القدمين. اجعله منحنيًا إذا كانت الوضعية ديناميكية.",
+            "ضع دوائر صغيرة للكتفين والمرفقين والوركين والركبتين. هذه النقاط تحدد مكان اتصال الأطراف قبل رسمها.",
+            "ارسم خطًا لاتجاه الصدر وآخر للحوض. يمكن أن يميل كل واحد باتجاه مختلف ليظهر الالتواء والحركة.",
+            "صل نقاط المفاصل بأشكال أسطوانية بسيطة. تحقق من طول الطرفين قبل إضافة تفاصيل العضلات أو الملابس.",
+            "قوّ حدود الجسم، واجعل القدمين واضحتين على الأرض أو في اتجاه الحركة. احذف خطوط البناء التي لم تعد تحتاجها."
+        )
+        "hands" -> listOf(
+            "ارسم راحة اليد ككتلة تشبه مستطيلًا مستديرًا أو شبه منحرف. لا ترسم الأصابع الآن؛ حدّد حجم الكف أولًا.",
+            "أضف خط محور من الرسغ إلى منتصف الكف، وحدد اتجاه اليد. يجب أن يتبع الرسغ اتجاه الساعد لا أن يكون منفصلًا عنه.",
+            "ارسم الإبهام خارج جانب الكف ككتلة قصيرة مائلة. انتبه إلى أنه يبدأ من جانب راحة اليد وليس من نهاية الأصابع.",
+            "قسّم الأصابع الأربعة إلى أطوال متدرجة، ثم ضع علامات المفاصل. اجعل الإصبع الأوسط غالبًا الأطول والبنصر أقصر قليلًا.",
+            "ارسم حدود الأصابع حول المفاصل، ثم أضف الأظافر والظلال الخفيفة. اترك فراغات صغيرة بين الأصابع حتى لا تلتصق."
+        )
+        "clothes" -> listOf(
+            "ابدأ بخطوط الجسم البسيطة تحت القماش، حتى تعرف أين يقع الكتف والخصر والركبة قبل رسم الثنيات.",
+            "حدّد نقاط الشد عند الكتف والمرفق والخصر والركبة. ضع نقطة صغيرة عند كل مكان يشد القماش نحوه.",
+            "ارسم الطيات من نقاط الشد إلى الخارج بخطوط متباعدة. اجعل اتجاه الطية يتبع حركة الجسم والجاذبية.",
+            "قرّب الطيات من بعضها قرب المفصل أو منطقة الضغط، ووسّع المسافات في الأجزاء الفضفاضة من القماش.",
+            "أضف ظلًا رفيعًا أسفل كل طية، واترك حافة مضيئة على الجهة المقابلة. لا ترسم خطوطًا متساوية السمك في كل مكان."
+        )
+        "jinwoo" -> listOf(
+            "ابدأ بدائرة الجمجمة في منتصف الورقة، واجعل أسفلها مساحة كافية للذقن والرقبة. الصورة المرجعية تساعدك على ملاحظة شكل الرأس الهادئ.",
+            "مدّ جانبي الوجه إلى فك أنحف وذقن واضح. ارسم خط المنتصف مائلًا قليلًا إذا أردت تقليد زاوية الصورة المرجعية.",
+            "ضع عينين ضيقتين نسبيًا وحاجبين هادئين. ركّز على اتجاه النظرة والمسافة بين العينين بدل تكبيرهما أكثر من اللازم.",
+            "قسّم الشعر الداكن إلى خصل كبيرة متجهة للأعلى والجوانب. ارسم silhouette الشعر أولًا، ثم أضف الخصل الداخلية واحدة بعد الأخرى.",
+            "قوّ ظل الغرة حول العين والرقبة، واترك لمعات صغيرة في الشعر. اجعل المعطف ذا ياقة مرتفعة بخطين واضحين."
+        )
+        "gojo" -> listOf(
+            "ارسم دائرة الرأس وحدد خط الذقن والرقبة. راجع الصورة المرجعية لتلاحظ شكل الوجه الطويل قليلًا والابتسامة الواثقة.",
+            "حدّد مستوى العينين ومكان العصابة قبل التفاصيل. إذا رسمت العصابة، فاجعلها شريطًا يلتف حول الرأس لا خطًا عابرًا فوق الوجه.",
+            "قسّم الشعر الفاتح إلى خصل كبيرة بارزة حول الرأس. ابدأ بالخصل الخارجية ثم أضف التداخل فوق الجبهة.",
+            "ارسم الياقة العالية حول الرقبة والكتفين. اجعلها أعرض من الرقبة مع طيات قليلة واضحة بدل خطوط كثيرة.",
+            "وازن بين الشعر الفاتح والعصابة والملابس الداكنة. أضف درجات ظل رمادية باردة داخل الخصل واترك مساحات بيضاء للضوء."
+        )
+        "luffy" -> listOf(
+            "ارسم دائرة الرأس والفك، واترك فراغًا كبيرًا أعلى الرأس للقبعة. انظر إلى الصورة المرجعية لتحدد عرض القبعة بالنسبة للوجه.",
+            "ضع العينين والأنف والفم والندبة أسفل العين. لا تجعل العينين ضخمتين جدًا؛ ابتسامة لوفي هي العنصر الأوضح في التعبير.",
+            "ارسم ابتسامة واسعة بقوس علوي وسفلي بسيط، وحدد الأسنان بخطوط قليلة. حافظ على الخدين مرتفعين ليظهر التعبير المرح.",
+            "أضف الشعر الأسود القصير أسفل حافة القبعة، واترك الخصل متفرقة على الجبهة. لا تدع الشعر يغطي العينين.",
+            "ارسم تاج القبعة أولًا كقوس عريض ثم أضف الحافة والشريط الأحمر. بعد ذلك أضف ظلالًا خفيفة على القش والملابس."
+        )
+        "tanjiro" -> listOf(
+            "ابدأ بدائرة الرأس وخط اتجاه الوجه. اترك موضعًا أعلى الجبهة للعلامة، وراجع الصورة المرجعية لتعرف مكانها النسبي.",
+            "ارسم العينين والحاجبين بتعبير مركز وهادئ. حافظ على التوازن بين الجانبين قبل إضافة العلامة أو الأقراط.",
+            "قسّم الشعر العنابي إلى خصل قصيرة متكسرة. ارسم حدود الكتلة أولًا، ثم أضف أطرافًا صغيرة مختلفة الاتجاه.",
+            "ضع علامة الجبهة فوق العين في موضعها الصحيح، ثم ارسم الأقراط على جانبي الوجه بخطين رفيعين ومستطيلين صغيرين.",
+            "أضف تباينًا بين الشعر الداكن والزي، وارسم نمط المربعات على أطراف الهاوري بخطوط متساوية. لا تزدحم التفاصيل حول الوجه."
+        )
+        else -> listOf(
+            "ابدأ بخطوط خفيفة وحدد الشكل الكبير قبل التفاصيل.",
+            "قِس موضع الخط بالنسبة إلى مركز الشكل وحوافه.",
+            "أضف الخطوط الأساسية ببطء، واجعلها متصلة وسلسة.",
+            "راجع النسب والمسافات قبل إضافة التفاصيل الصغيرة.",
+            "نظّف الخطوط وأضف اللمسات النهائية بعد التأكد من الشكل."
+        )
+    }
+    return details.getOrElse(step) { details.last() }
+}
+
+private fun stepLocation(lesson: Lesson, step: Int): String {
+    val locations = when (lesson.kind) {
+        "face" -> listOf("منتصف مساحة الرسم، في الجزء العلوي", "منتصف الدائرة، ثم مستوى العينين", "جانبا الرأس نزولًا إلى الذقن", "الثلث الأوسط من الوجه", "حدود الوجه والشعر وأسفل الذقن")
+        "eye" -> listOf("الحافة العلوية لفتحة العين", "أسفل القوس العلوي مباشرة", "وسط فتحة العين", "داخل القزحية بعيدًا عن الحواف", "الجفن العلوي وأعلى القزحية")
+        "hair" -> listOf("حول الرأس من الخارج", "داخل كتلة الشعر", "نهايات المجموعات", "مقدمة الرأس فوق الجبهة", "داخل الخصل وتحت مناطق التداخل")
+        "shade" -> listOf("خارج الشكل لتحديد اتجاه الضوء", "الجهة البعيدة عن الضوء", "تحت الشعر والأنف والذقن", "نقاط التقاء الأشكال", "حواف الظل ومناطق اللمعان")
+        "body" -> listOf("محور الجسم من الرأس إلى الحوض", "منطقة الصدر والحوض", "طرفا الكتفين والحوض", "على امتداد الذراعين والساقين", "الحدود الخارجية للجسم")
+        "pose" -> listOf("خط الحركة الرئيسي وسط الورقة", "أماكن المفاصل", "داخل الصدر والحوض", "بين المفاصل", "الحدود الخارجية والقدمين")
+        "hands" -> listOf("منتصف راحة اليد", "من الرسغ إلى منتصف الكف", "جانب الكف المقابل للخنصر", "أعلى راحة اليد", "حول الأصابع والمفاصل")
+        "clothes" -> listOf("داخل حدود الجسم", "نقاط الكتف والمرفق والخصر", "من نقطة الشد إلى أطراف القماش", "مناطق الضغط والفراغ", "أسفل خطوط الطيات")
+        "jinwoo" -> listOf("منتصف أعلى مساحة الرسم", "جانبا الوجه وأسفل الذقن", "على مستوى العينين", "حول أعلى الرأس والجبهة", "حول العين والرقبة وياقة المعطف")
+        "gojo" -> listOf("منتصف مساحة الرسم", "مستوى العينين وحول الرأس", "محيط الرأس والجبهة", "أسفل الذقن وحول الرقبة", "الشعر والعصابة والياقة")
+        "luffy" -> listOf("منتصف مساحة الرسم وأعلاها", "منتصف الوجه", "أسفل الأنف والخدين", "تحت حافة القبعة", "أعلى الرأس وحافة القبعة")
+        "tanjiro" -> listOf("منتصف مساحة الرسم", "مستوى العينين والحاجبين", "حول أعلى الرأس", "الجبهة وجانبا الوجه", "الشعر والزي حول الكتفين")
+        else -> listOf("وسط مساحة الرسم", "حول الشكل الأساسي", "داخل حدود الرسم", "مواضع التفاصيل", "الخطوط النهائية")
+    }
+    return locations.getOrElse(step) { locations.last() }
+}
+
+private fun characterPortrait(lesson: Lesson): Int = when (lesson.kind) {
+    "jinwoo" -> R.drawable.character_jinwoo
+    "gojo" -> R.drawable.character_gojo
+    "luffy" -> R.drawable.character_luffy
+    "tanjiro" -> R.drawable.character_tanjiro
+    else -> 0
+}
+
 
 @Composable
 private fun LessonScreen(
@@ -373,66 +517,107 @@ private fun LessonScreen(
     isCompleted: Boolean,
     onComplete: () -> Unit
 ) {
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(13.dp)) {
-        TextButton(onClick = onBack) { Text("← العودة إلى الدروس", color = Accent, fontSize = 14.sp) }
-        Text(lesson.series.uppercase(), color = lesson.accent, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-        Text(lesson.title, color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Bold)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("الخطوة ${step + 1} من ${lesson.steps.size}", color = Color(0xFFC6CAD6), fontSize = 12.sp)
-            Spacer(Modifier.weight(1f))
-            Text("${((step + 1) * 100 / lesson.steps.size)}%", color = AccentMint, fontSize = 12.sp)
+    Column(
+        Modifier.fillMaxSize().background(Background).padding(horizontal = 11.dp, vertical = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 42.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(7.dp)
+        ) {
+            TextButton(onClick = onBack, contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)) {
+                Text("‹ الدروس", color = Accent, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                Text(lesson.title, color = Ink, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                Text(lesson.series, color = Muted, fontSize = 10.sp)
+            }
+            Text("${step + 1} / ${lesson.steps.size}", color = Accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
+
         LinearProgressIndicator(
             progress = (step + 1).toFloat() / lesson.steps.size.toFloat(),
-            modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
-            color = lesson.accent, trackColor = SurfaceRaised
+            modifier = Modifier.fillMaxWidth().height(5.dp).clip(CircleShape),
+            color = lesson.accent,
+            trackColor = SurfaceRaised
         )
-        Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = SurfaceDark)) {
-            Column(Modifier.fillMaxWidth().padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("الرسم التوضيحي", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                GuideIllustration(lesson, step, Modifier.fillMaxWidth().height(225.dp))
-                Text("يتطور الرسم مع كل خطوة", color = Color(0xFF9EA5B6), fontSize = 11.sp)
+
+        Card(
+            Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(17.dp),
+            colors = CardDefaults.cardColors(containerColor = SurfaceDark),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(Modifier.fillMaxWidth().padding(10.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                    val portrait = characterPortrait(lesson)
+                    if (portrait != 0) {
+                        Image(
+                            painter = painterResource(portrait),
+                            contentDescription = "صورة مرجعية مرسومة للشخصية",
+                            modifier = Modifier.size(82.dp).clip(RoundedCornerShape(12.dp)).border(1.dp, SurfaceRaised, RoundedCornerShape(12.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Text(if (portrait != 0) "مرجع الشخصية" else "الخطوة الحالية", color = lesson.accent, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Text(lesson.steps[step], color = Ink, fontSize = 13.sp, lineHeight = 19.sp, fontWeight = FontWeight.SemiBold)
+                        if (portrait != 0) {
+                            Text("استخدم الصورة لملاحظة شكل الشعر والوجه والملابس.", color = Muted, fontSize = 10.sp, lineHeight = 14.sp)
+                        }
+                    }
+                }
+                Text("شرح التنفيذ: ${stepExplanation(lesson, step)}", color = Ink, fontSize = 11.sp, lineHeight = 16.sp)
+                Text("مكان الرسم: ${stepLocation(lesson, step)}", color = Accent, fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold)
+                Text("انتبه: ${lesson.tip}", color = Muted, fontSize = 10.sp, lineHeight = 14.sp)
             }
         }
-        Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(17.dp),
-            colors = CardDefaults.cardColors(containerColor = SurfaceRaised)) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("نفّذ هذه الخطوة", color = lesson.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                Text(lesson.steps[step], color = Color.White, fontSize = 16.sp, lineHeight = 25.sp)
-                Text("نصيحة: ${lesson.tip}", color = Color(0xFFB8BECC), fontSize = 12.sp, lineHeight = 19.sp)
-            }
+
+        Row(
+            Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("ارسم فوق المخطط الباهت مباشرة", color = Ink, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text("اللوحة والشرح في مكان واحد", color = Muted, fontSize = 10.sp)
         }
-        if (isCompleted) {
-            Text("✓  أكملت هذا الدرس، وتم حفظ تقدمك على الهاتف.", color = AccentMint, fontSize = 12.sp)
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(9.dp), modifier = Modifier.fillMaxWidth()) {
-            OutlinedButton(onClick = { onStepChange((step - 1).coerceAtLeast(0)) },
-                enabled = step > 0, modifier = Modifier.weight(1f)) { Text("السابق") }
+
+        DrawingPad(lesson, step, Modifier.fillMaxWidth().weight(1f))
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            OutlinedButton(
+                onClick = { onStepChange((step - 1).coerceAtLeast(0)) },
+                enabled = step > 0,
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(vertical = 8.dp)
+            ) { Text("الخطوة السابقة") }
+
             Button(
                 onClick = {
                     if (step < lesson.steps.lastIndex) onStepChange(step + 1)
                     else if (!isCompleted) onComplete()
                 },
                 enabled = step < lesson.steps.lastIndex || !isCompleted,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1.2f),
+                contentPadding = PaddingValues(vertical = 8.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = Color.White)
             ) {
                 Text(
                     when {
                         step < lesson.steps.lastIndex -> "الخطوة التالية"
-                        isCompleted -> "تم إكمال الدرس"
+                        isCompleted -> "اكتمل الدرس"
                         else -> "إكمال الدرس"
                     }
                 )
             }
         }
-        Text("مساحة التدريب الخاصة بك", color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
-        Text("ارسم بإصبعك، تراجع عن آخر خط، ثم احفظ عملك كصورة PNG.",
-            color = Color(0xFF9EA5B6), fontSize = 12.sp)
-        DrawingPad(lesson.id, Modifier.fillMaxWidth())
-        Spacer(Modifier.height(20.dp))
+        if (isCompleted) {
+            Text("✓ تم حفظ إكمال هذا الدرس على هاتفك.", color = AccentMint, fontSize = 10.sp)
+        }
     }
 }
 
@@ -816,26 +1001,28 @@ private fun DrawScope.drawClothesStudy(progress: Int, dark: Color, accent: Color
 }
 
 @Composable
-private fun DrawingPad(lessonId: String, modifier: Modifier = Modifier) {
+private fun DrawingPad(lesson: Lesson, step: Int, modifier: Modifier = Modifier) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    val drawingPreferences = remember(lessonId) {
+    val drawingPreferences = remember(lesson.id) {
         context.getSharedPreferences("anime_art_academy_drawings", Context.MODE_PRIVATE)
     }
-    val strokes = remember(lessonId) {
+    val strokes = remember(lesson.id) {
         mutableStateListOf<InkStroke>().apply {
-            addAll(decodeDrawingStrokes(drawingPreferences.getString("drawing_$lessonId", null)))
+            addAll(decodeDrawingStrokes(drawingPreferences.getString("drawing_${lesson.id}", null)))
         }
     }
-    val redoStrokes = remember(lessonId) { mutableStateListOf<InkStroke>() }
-    var currentPoints by remember(lessonId) { mutableStateOf<List<Offset>>(emptyList()) }
-    var selectedColor by remember(lessonId) { mutableStateOf(Color(0xFF242631)) }
-    var brushWidth by remember(lessonId) { mutableStateOf(0.006f) }
-    var pendingSave by remember(lessonId) { mutableStateOf<List<InkStroke>>(emptyList()) }
+    val redoStrokes = remember(lesson.id) { mutableStateListOf<InkStroke>() }
+    var currentPoints by remember(lesson.id) { mutableStateOf<List<Offset>>(emptyList()) }
+    var selectedColor by remember(lesson.id) { mutableStateOf(Color(0xFF242631)) }
+    var brushWidth by remember(lesson.id) { mutableStateOf(0.006f) }
+    var pendingSave by remember(lesson.id) { mutableStateOf<List<InkStroke>>(emptyList()) }
+
     fun persistDrawing() {
         drawingPreferences.edit()
-            .putString("drawing_$lessonId", encodeDrawingStrokes(strokes.toList()))
+            .putString("drawing_${lesson.id}", encodeDrawingStrokes(strokes.toList()))
             .apply()
     }
+
     val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/png")) { uri: Uri? ->
         if (uri != null) {
             val ok = writeDrawing(context, uri, pendingSave)
@@ -843,39 +1030,53 @@ private fun DrawingPad(lessonId: String, modifier: Modifier = Modifier) {
         }
     }
 
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(9.dp)) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 29.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             listOf(Color(0xFF242631), Color(0xFF9B3848), Color(0xFF315FAD), Color(0xFF24815E), Color(0xFFD39A37), Paper).forEach { color ->
-                Box(Modifier.size(30.dp).clip(CircleShape).background(color)
-                    .then(if (selectedColor == color) Modifier.border(2.dp, Accent, CircleShape) else Modifier)
-                    .clickable { selectedColor = color })
+                Box(
+                    Modifier.size(27.dp).clip(CircleShape).background(color)
+                        .then(if (selectedColor == color) Modifier.border(2.dp, Accent, CircleShape) else Modifier)
+                        .clickable { selectedColor = color }
+                )
             }
         }
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("سُمك القلم", color = Color(0xFFB9BECC), fontSize = 11.sp)
-            TextButton(onClick = { brushWidth = 0.004f }, contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp)) {
-                Text(if (brushWidth == 0.004f) "✓ رفيع" else "رفيع", color = if (brushWidth == 0.004f) AccentMint else Accent, fontSize = 11.sp)
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 28.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("القلم", color = Muted, fontSize = 10.sp)
+            TextButton(onClick = { brushWidth = 0.004f }, contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)) {
+                Text(if (brushWidth == 0.004f) "✓ رفيع" else "رفيع", color = if (brushWidth == 0.004f) AccentMint else Accent, fontSize = 10.sp)
             }
-            TextButton(onClick = { brushWidth = 0.012f }, contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp)) {
-                Text(if (brushWidth == 0.012f) "✓ متوسط" else "متوسط", color = if (brushWidth == 0.012f) AccentMint else Accent, fontSize = 11.sp)
+            TextButton(onClick = { brushWidth = 0.012f }, contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)) {
+                Text(if (brushWidth == 0.012f) "✓ متوسط" else "متوسط", color = if (brushWidth == 0.012f) AccentMint else Accent, fontSize = 10.sp)
             }
-            TextButton(onClick = { brushWidth = 0.020f }, contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp)) {
-                Text(if (brushWidth == 0.020f) "✓ عريض" else "عريض", color = if (brushWidth == 0.020f) AccentMint else Accent, fontSize = 11.sp)
+            TextButton(onClick = { brushWidth = 0.020f }, contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)) {
+                Text(if (brushWidth == 0.020f) "✓ عريض" else "عريض", color = if (brushWidth == 0.020f) AccentMint else Accent, fontSize = 10.sp)
             }
-            TextButton(onClick = { selectedColor = Paper }, contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp)) {
-                Text("ممحاة", color = Accent, fontSize = 11.sp)
+            TextButton(onClick = { selectedColor = Paper }, contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)) {
+                Text("ممحاة", color = Accent, fontSize = 10.sp)
             }
         }
-        Canvas(
-            Modifier.fillMaxWidth().aspectRatio(1f).shadow(3.dp, RoundedCornerShape(17.dp))
-                .clip(RoundedCornerShape(17.dp)).background(Paper)
-                .pointerInput(selectedColor, brushWidth) {
+
+        Box(
+            Modifier.fillMaxWidth().weight(1f).clip(RoundedCornerShape(15.dp))
+                .background(Paper).border(1.dp, Color(0xFFE0E2EA), RoundedCornerShape(15.dp))
+        ) {
+            GuideIllustration(lesson, step, Modifier.fillMaxSize().alpha(0.30f))
+            Canvas(
+                Modifier.fillMaxSize().pointerInput(selectedColor, brushWidth, lesson.id) {
                     val canvasWidth = size.width.coerceAtLeast(1).toFloat()
                     val canvasHeight = size.height.coerceAtLeast(1).toFloat()
                     detectDragGestures(
-                        onDragStart = { p -> currentPoints = listOf(Offset(p.x / canvasWidth, p.y / canvasHeight)) },
+                        onDragStart = { p ->
+                            currentPoints = listOf(Offset(p.x / canvasWidth, p.y / canvasHeight))
+                        },
                         onDrag = { change, _ ->
                             currentPoints = currentPoints + Offset(
                                 (change.position.x / canvasWidth).coerceIn(0f, 1f),
@@ -894,59 +1095,79 @@ private fun DrawingPad(lessonId: String, modifier: Modifier = Modifier) {
                         onDragCancel = { currentPoints = emptyList() }
                     )
                 }
-        ) {
-            drawRect(Paper)
-            val allStrokes = strokes.toList() + if (currentPoints.isNotEmpty())
-                listOf(InkStroke(currentPoints, selectedColor, brushWidth)) else emptyList()
-            allStrokes.forEach { stroke ->
-                if (stroke.points.isNotEmpty()) {
-                    val first = stroke.points.first()
-                    val path = Path().apply {
-                        moveTo(first.x * size.width, first.y * size.height)
-                        stroke.points.drop(1).forEach { lineTo(it.x * size.width, it.y * size.height) }
-                        if (stroke.points.size == 1) lineTo(first.x * size.width + 0.5f, first.y * size.height + 0.5f)
-                    }
-                    if (stroke.points.size == 1) {
-                        drawCircle(stroke.color, stroke.widthFraction * size.width / 2f,
-                            Offset(first.x * size.width, first.y * size.height))
-                    } else {
-                        drawPath(path, stroke.color, style = Stroke(
-                            width = stroke.widthFraction * size.width,
-                            cap = androidx.compose.ui.graphics.StrokeCap.Round,
-                            join = androidx.compose.ui.graphics.StrokeJoin.Round
-                        ))
+            ) {
+                val allStrokes = strokes.toList() + if (currentPoints.isNotEmpty())
+                    listOf(InkStroke(currentPoints, selectedColor, brushWidth)) else emptyList()
+                allStrokes.forEach { stroke ->
+                    if (stroke.points.isNotEmpty()) {
+                        val first = stroke.points.first()
+                        val path = Path().apply {
+                            moveTo(first.x * size.width, first.y * size.height)
+                            stroke.points.drop(1).forEach { lineTo(it.x * size.width, it.y * size.height) }
+                            if (stroke.points.size == 1) lineTo(first.x * size.width + 0.5f, first.y * size.height + 0.5f)
+                        }
+                        if (stroke.points.size == 1) {
+                            drawCircle(stroke.color, stroke.widthFraction * size.width / 2f,
+                                Offset(first.x * size.width, first.y * size.height))
+                        } else {
+                            drawPath(path, stroke.color, style = Stroke(
+                                width = stroke.widthFraction * size.width,
+                                cap = androidx.compose.ui.graphics.StrokeCap.Round,
+                                join = androidx.compose.ui.graphics.StrokeJoin.Round
+                            ))
+                        }
                     }
                 }
             }
         }
+
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-            OutlinedButton(onClick = {
-                if (strokes.isNotEmpty()) {
-                    redoStrokes.add(strokes.removeAt(strokes.lastIndex))
+            OutlinedButton(
+                onClick = {
+                    if (strokes.isNotEmpty()) {
+                        redoStrokes.add(strokes.removeAt(strokes.lastIndex))
+                        persistDrawing()
+                    }
+                },
+                Modifier.weight(0.85f).heightIn(min = 34.dp),
+                enabled = strokes.isNotEmpty(),
+                contentPadding = PaddingValues(vertical = 3.dp)
+            ) { Text("تراجع", fontSize = 11.sp) }
+
+            OutlinedButton(
+                onClick = {
+                    if (redoStrokes.isNotEmpty()) {
+                        strokes.add(redoStrokes.removeAt(redoStrokes.lastIndex))
+                        persistDrawing()
+                    }
+                },
+                Modifier.weight(0.85f).heightIn(min = 34.dp),
+                enabled = redoStrokes.isNotEmpty(),
+                contentPadding = PaddingValues(vertical = 3.dp)
+            ) { Text("إعادة", fontSize = 11.sp) }
+
+            OutlinedButton(
+                onClick = {
+                    strokes.clear()
+                    redoStrokes.clear()
+                    currentPoints = emptyList()
                     persistDrawing()
-                }
-            }, Modifier.weight(0.85f), enabled = strokes.isNotEmpty()) { Text("تراجع") }
-            OutlinedButton(onClick = {
-                if (redoStrokes.isNotEmpty()) {
-                    strokes.add(redoStrokes.removeAt(redoStrokes.lastIndex))
-                    persistDrawing()
-                }
-            }, Modifier.weight(0.85f), enabled = redoStrokes.isNotEmpty()) { Text("إعادة") }
-            OutlinedButton(onClick = {
-                strokes.clear()
-                redoStrokes.clear()
-                currentPoints = emptyList()
-                persistDrawing()
-            }, Modifier.weight(0.8f)) { Text("مسح") }
-            Button(onClick = {
-                pendingSave = strokes.toList()
-                saveLauncher.launch("anime-art-${System.currentTimeMillis()}.png")
-            }, Modifier.weight(1.2f), enabled = strokes.isNotEmpty(),
-                colors = ButtonDefaults.buttonColors(containerColor = Accent)) {
-                Text("حفظ PNG")
-            }
+                },
+                Modifier.weight(0.8f).heightIn(min = 34.dp),
+                contentPadding = PaddingValues(vertical = 3.dp)
+            ) { Text("مسح", fontSize = 11.sp) }
+
+            Button(
+                onClick = {
+                    pendingSave = strokes.toList()
+                    saveLauncher.launch("anime-art-${lesson.id}-${System.currentTimeMillis()}.png")
+                },
+                Modifier.weight(1.2f).heightIn(min = 34.dp),
+                enabled = strokes.isNotEmpty(),
+                contentPadding = PaddingValues(vertical = 3.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Accent)
+            ) { Text("حفظ PNG", fontSize = 11.sp) }
         }
-        Text("يُحفظ هذا التدريب تلقائيًا على هاتفك. ويمكنك أيضًا تصديره كصورة PNG.", color = Color(0xFF9EA5B6), fontSize = 11.sp)
     }
 }
 
